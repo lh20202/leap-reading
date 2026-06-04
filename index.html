@@ -1,0 +1,1196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HCRI76000 Reading Dashboard</title>
+    <style>
+      :root {
+        --bg: #f6f4ef;
+        --surface: #fffdfa;
+        --surface-strong: #ffffff;
+        --ink: #22201c;
+        --muted: #686057;
+        --line: #ded8cf;
+        --accent: #215d63;
+        --accent-soft: #d8e9e8;
+        --core: #245a48;
+        --additional: #745721;
+        --wider: #633f73;
+        --shadow: 0 12px 30px rgba(42, 34, 24, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        line-height: 1.55;
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 253, 250, 0.94);
+        backdrop-filter: blur(14px);
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 14px 22px;
+      }
+
+      .brand {
+        display: grid;
+        gap: 1px;
+        min-width: 190px;
+      }
+
+      .brand strong {
+        font-size: 0.95rem;
+        letter-spacing: 0.06em;
+      }
+
+      .brand span {
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 4px;
+      }
+
+      .nav-links a {
+        border-radius: 6px;
+        color: var(--ink);
+        font-size: 0.92rem;
+        padding: 8px 10px;
+        text-decoration: none;
+      }
+
+      .nav-links a:hover,
+      .nav-links a:focus {
+        background: var(--accent-soft);
+        outline: none;
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 34px 22px 58px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 18px;
+        margin-bottom: 34px;
+      }
+
+      .eyebrow {
+        color: var(--accent);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        margin: 0;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.14;
+        margin: 0;
+      }
+
+      h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(2.2rem, 7vw, 4.7rem);
+        font-weight: 700;
+        max-width: 920px;
+      }
+
+      .purpose {
+        color: var(--muted);
+        font-size: 1.1rem;
+        max-width: 760px;
+      }
+
+      .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--surface);
+        padding: 10px 12px;
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 1.2rem;
+      }
+
+      .stat span {
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .badge {
+        align-items: center;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        display: inline-flex;
+        font-size: 0.76rem;
+        font-weight: 700;
+        gap: 6px;
+        line-height: 1;
+        padding: 6px 8px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .badge.core {
+        background: #e3f0e8;
+        color: var(--core);
+      }
+
+      .badge.additional {
+        background: #f1e6cf;
+        color: var(--additional);
+      }
+
+      .badge.wider {
+        background: #eadff0;
+        color: var(--wider);
+      }
+
+      .badge.origin {
+        background: #edf0f2;
+        color: #39434b;
+      }
+
+      .section-heading {
+        align-items: end;
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        margin: 40px 0 16px;
+      }
+
+      .section-heading p {
+        color: var(--muted);
+        margin: 6px 0 0;
+      }
+
+      .tile-group {
+        border-top: 1px solid var(--line);
+        padding-top: 20px;
+      }
+
+      .week-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .week-tile {
+        background: var(--surface-strong);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        color: inherit;
+        display: grid;
+        gap: 14px;
+        min-height: 190px;
+        padding: 18px;
+        text-align: left;
+        text-decoration: none;
+        transition: transform 160ms ease, border-color 160ms ease;
+      }
+
+      .week-tile:hover,
+      .week-tile:focus {
+        border-color: var(--accent);
+        outline: none;
+        transform: translateY(-2px);
+      }
+
+      .week-number {
+        color: var(--accent);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .week-tile h3 {
+        font-size: 1.22rem;
+      }
+
+      .count-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: auto;
+      }
+
+      .app-grid {
+        align-items: start;
+        display: grid;
+        gap: 22px;
+        grid-template-columns: 280px minmax(0, 1fr);
+      }
+
+      .sidebar {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        position: sticky;
+        top: 78px;
+      }
+
+      .sidebar-inner {
+        display: grid;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .control {
+        display: grid;
+        gap: 6px;
+      }
+
+      .control label {
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      input,
+      select {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: var(--ink);
+        min-height: 42px;
+        padding: 9px 10px;
+        width: 100%;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: var(--accent);
+        outline: 2px solid rgba(33, 93, 99, 0.16);
+      }
+
+      .button {
+        align-items: center;
+        background: var(--accent);
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        color: #fff;
+        cursor: pointer;
+        display: inline-flex;
+        font-weight: 700;
+        justify-content: center;
+        min-height: 38px;
+        padding: 8px 11px;
+        text-decoration: none;
+      }
+
+      .button.secondary {
+        background: #fff;
+        border-color: var(--line);
+        color: var(--ink);
+      }
+
+      .button[disabled] {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .result-count {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .week-section {
+        background: rgba(255, 253, 250, 0.68);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        margin-bottom: 22px;
+        overflow: hidden;
+      }
+
+      .week-header {
+        background: var(--surface-strong);
+        border-bottom: 1px solid var(--line);
+        display: grid;
+        gap: 8px;
+        padding: 20px;
+      }
+
+      .week-header h3 {
+        font-size: 1.5rem;
+      }
+
+      .week-header p {
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .reading-group {
+        padding: 20px;
+      }
+
+      .reading-group + .reading-group {
+        border-top: 1px solid var(--line);
+      }
+
+      .group-title {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .group-title h4 {
+        font-size: 1rem;
+        margin: 0;
+      }
+
+      .reading-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .reading-card {
+        background: var(--surface-strong);
+        border: 1px solid var(--line);
+        border-left: 5px solid var(--accent);
+        border-radius: 8px;
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+      }
+
+      .reading-card.core-border {
+        border-left-color: var(--core);
+      }
+
+      .reading-card.additional-border {
+        border-left-color: var(--additional);
+      }
+
+      .reading-card.wider-border {
+        border-left-color: var(--wider);
+      }
+
+      .reading-title {
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1.16rem;
+        font-weight: 700;
+        text-decoration-thickness: 1px;
+      }
+
+      .reading-title.no-link {
+        text-decoration: none;
+      }
+
+      .meta {
+        color: var(--muted);
+        display: flex;
+        flex-wrap: wrap;
+        font-size: 0.92rem;
+        gap: 6px 12px;
+      }
+
+      .meta span {
+        min-width: 0;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .citation {
+        background: #f7f4ee;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: #38322b;
+        font-family: Georgia, "Times New Roman", serif;
+        padding: 12px;
+      }
+
+      .notes {
+        border-left: 3px solid var(--line);
+        color: var(--muted);
+        padding-left: 10px;
+      }
+
+      .empty {
+        color: var(--muted);
+        font-style: italic;
+        margin: 0;
+      }
+
+      details.response {
+        border-top: 1px solid var(--line);
+        padding: 0 20px 20px;
+      }
+
+      details.response summary {
+        cursor: pointer;
+        font-weight: 800;
+        padding: 16px 0 8px;
+      }
+
+      .wiki-layout {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: 310px minmax(0, 1fr);
+      }
+
+      .wiki-nav,
+      .wiki-detail {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .wiki-nav {
+        max-height: 72vh;
+        overflow: auto;
+        padding: 14px;
+      }
+
+      .wiki-week {
+        border-bottom: 1px solid var(--line);
+        padding: 10px 0;
+      }
+
+      .wiki-week:last-child {
+        border-bottom: 0;
+      }
+
+      .wiki-week h4 {
+        margin: 0 0 8px;
+      }
+
+      .wiki-reading {
+        background: transparent;
+        border: 0;
+        border-radius: 6px;
+        color: var(--ink);
+        cursor: pointer;
+        display: block;
+        padding: 7px 8px;
+        text-align: left;
+        width: 100%;
+      }
+
+      .wiki-reading:hover,
+      .wiki-reading:focus,
+      .wiki-reading.active {
+        background: var(--accent-soft);
+        outline: none;
+      }
+
+      .wiki-detail {
+        min-height: 360px;
+        padding: 20px;
+      }
+
+      .full-text-placeholder {
+        background: #f7f4ee;
+        border: 1px dashed #bcb3a6;
+        border-radius: 8px;
+        margin-top: 16px;
+        padding: 14px;
+      }
+
+      .about {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 20px;
+      }
+
+      .about p {
+        color: var(--muted);
+        margin: 0 0 12px;
+      }
+
+      .error {
+        background: #fff2f0;
+        border: 1px solid #d89a91;
+        border-radius: 8px;
+        color: #73342d;
+        margin: 18px 0;
+        padding: 14px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 880px) {
+        .nav {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .nav-links {
+          justify-content: flex-start;
+        }
+
+        .week-grid,
+        .app-grid,
+        .wiki-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: static;
+        }
+      }
+
+      @media (max-width: 560px) {
+        main {
+          padding: 26px 14px 44px;
+        }
+
+        .nav {
+          padding: 12px 14px;
+        }
+
+        .week-tile {
+          min-height: 160px;
+        }
+
+        .reading-group,
+        .week-header,
+        .wiki-detail,
+        .about {
+          padding: 16px;
+        }
+
+        .actions .button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <nav class="nav" aria-label="Main navigation">
+        <a class="brand" href="#home" aria-label="HCRI76000 home">
+          <strong>HCRI76000</strong>
+          <span>Reading dashboard</span>
+        </a>
+        <div class="nav-links">
+          <a href="#home">Home</a>
+          <a href="#weekly-readings">Weekly readings</a>
+          <a href="#reading-wiki">Reading wiki</a>
+          <a href="#search">Search</a>
+          <a href="#about">About</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section id="home" class="hero">
+        <p class="eyebrow">Leadership & Management in Health & Humanitarianism</p>
+        <h1>HCRI76000 Leadership & Management in Health & Humanitarianism</h1>
+        <p class="purpose">
+          A personal academic reading dashboard for browsing weekly course readings,
+          separating university-provided material from wider reading, and keeping task response notes visible.
+        </p>
+        <div id="load-error" class="error hidden" role="alert"></div>
+        <div id="stats" class="stats" aria-label="Reading counts"></div>
+        <div class="legend" aria-label="Reading labels">
+          <span class="badge core">Core</span>
+          <span class="badge additional">Additional</span>
+          <span class="badge wider">Wider reading</span>
+        </div>
+      </section>
+
+      <section id="week-tiles" aria-labelledby="week-tiles-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="week-tiles-title">Weeks</h2>
+            <p>Browse the course in three readable clusters.</p>
+          </div>
+        </div>
+        <div id="tile-groups"></div>
+      </section>
+
+      <section id="search" aria-labelledby="search-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="search-title">Search</h2>
+            <p>Search title, author, citation, source, notes and week title.</p>
+          </div>
+          <p id="result-count" class="result-count"></p>
+        </div>
+      </section>
+
+      <section id="weekly-readings" aria-labelledby="weekly-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="weekly-title">Weekly readings</h2>
+            <p>Readings are grouped by the category fields supplied in <code>readings.json</code>.</p>
+          </div>
+        </div>
+        <div class="app-grid">
+          <aside class="sidebar" aria-label="Reading filters">
+            <div class="sidebar-inner">
+              <div class="control">
+                <label for="search-input">Search</label>
+                <input id="search-input" type="search" placeholder="Search readings">
+              </div>
+              <div class="control">
+                <label for="week-filter">Week</label>
+                <select id="week-filter"></select>
+              </div>
+              <div class="control">
+                <label for="category-filter">Reading category</label>
+                <select id="category-filter"></select>
+              </div>
+              <div class="control">
+                <label for="kind-filter">Core / additional / wider</label>
+                <select id="kind-filter"></select>
+              </div>
+              <div class="control">
+                <label for="origin-filter">Source origin</label>
+                <select id="origin-filter"></select>
+              </div>
+              <button id="clear-filters" class="button secondary" type="button">Clear filters</button>
+            </div>
+          </aside>
+          <div id="weekly-container"></div>
+        </div>
+      </section>
+
+      <section id="reading-wiki" aria-labelledby="wiki-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="wiki-title">Reading wiki</h2>
+            <p>A structured index for bibliographic metadata, citation copying and future notes.</p>
+          </div>
+        </div>
+        <div class="wiki-layout">
+          <div id="wiki-nav" class="wiki-nav" aria-label="Reading wiki navigation"></div>
+          <article id="wiki-detail" class="wiki-detail" aria-live="polite">
+            <p class="empty">Select a reading from the index.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="about" aria-labelledby="about-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="about-title">About</h2>
+          </div>
+        </div>
+        <div class="about">
+          <p>This is a personal academic reading dashboard for HCRI76000.</p>
+          <p>It combines university-provided core and additional readings with wider readings drawn from response bibliographies.</p>
+          <p>Links are preserved exactly as supplied in the canonical <code>readings.json</code> data source.</p>
+          <p>This first version organises and links readings but does not host full PDF text, scrape sources, run OCR or fetch institutional links.</p>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const weekDisplayTitles = {
+        1: "Introduction & Competence/Critique",
+        2: "The Basics of Project Management",
+        3: "Self-management - Maximising potential",
+        4: "Team Management - Leading teams in difficult environments",
+        5: "Relationship management - communication, coordination or control?",
+        6: "Understanding futures - macro trends",
+        7: "Understanding futures - technology",
+        8: "Understanding futures - the impact on health and humanitarianism"
+      };
+
+      const tileSections = [
+        { title: "Early foundations", description: "Weeks 1-3", weeks: [1, 2, 3] },
+        { title: "Management practice", description: "Weeks 4-5", weeks: [4, 5] },
+        { title: "Futures and humanitarian change", description: "Weeks 6-8", weeks: [6, 7, 8] }
+      ];
+
+      const categoryLabels = {
+        uni_provided_core: "University-provided mandatory / core readings",
+        uni_provided_additional: "University-provided additional readings",
+        wider_from_my_responses: "Wider reading"
+      };
+
+      const shortLabels = {
+        uni_provided_core: "Core",
+        uni_provided_additional: "Additional",
+        wider_from_my_responses: "Wider reading"
+      };
+
+      const expectedCategories = [
+        "uni_provided_core",
+        "uni_provided_additional",
+        "wider_from_my_responses"
+      ];
+
+      const state = {
+        data: null,
+        selectedWikiId: null,
+        filters: {
+          search: "",
+          week: "all",
+          category: "all",
+          kind: "all",
+          origin: "all"
+        }
+      };
+
+      const els = {
+        loadError: document.querySelector("#load-error"),
+        stats: document.querySelector("#stats"),
+        tileGroups: document.querySelector("#tile-groups"),
+        weeklyContainer: document.querySelector("#weekly-container"),
+        wikiNav: document.querySelector("#wiki-nav"),
+        wikiDetail: document.querySelector("#wiki-detail"),
+        resultCount: document.querySelector("#result-count"),
+        searchInput: document.querySelector("#search-input"),
+        weekFilter: document.querySelector("#week-filter"),
+        categoryFilter: document.querySelector("#category-filter"),
+        kindFilter: document.querySelector("#kind-filter"),
+        originFilter: document.querySelector("#origin-filter"),
+        clearFilters: document.querySelector("#clear-filters")
+      };
+
+      init();
+
+      async function init() {
+        try {
+          const response = await fetch("readings.json");
+          if (!response.ok) {
+            throw new Error(`readings.json could not be loaded (${response.status})`);
+          }
+          state.data = await response.json();
+          renderAll();
+          bindControls();
+        } catch (error) {
+          els.loadError.textContent =
+            "readings.json could not be loaded. Add readings.json to the repository root and serve the site from a static web server.";
+          els.loadError.classList.remove("hidden");
+          console.error(error);
+        }
+      }
+
+      function renderAll() {
+        renderStats();
+        renderTiles();
+        renderFilters();
+        renderWeeklyReadings();
+        renderWikiNav();
+        renderWikiDetail(flattenReadings()[0]);
+      }
+
+      function bindControls() {
+        els.searchInput.addEventListener("input", (event) => {
+          state.filters.search = event.target.value.trim().toLowerCase();
+          renderWeeklyReadings();
+        });
+
+        [
+          [els.weekFilter, "week"],
+          [els.categoryFilter, "category"],
+          [els.kindFilter, "kind"],
+          [els.originFilter, "origin"]
+        ].forEach(([element, key]) => {
+          element.addEventListener("change", (event) => {
+            state.filters[key] = event.target.value;
+            renderWeeklyReadings();
+          });
+        });
+
+        els.clearFilters.addEventListener("click", () => {
+          state.filters = { search: "", week: "all", category: "all", kind: "all", origin: "all" };
+          els.searchInput.value = "";
+          els.weekFilter.value = "all";
+          els.categoryFilter.value = "all";
+          els.kindFilter.value = "all";
+          els.originFilter.value = "all";
+          renderWeeklyReadings();
+        });
+      }
+
+      function renderStats() {
+        const readings = flattenReadings();
+        const counts = countByCategory(readings);
+        els.stats.innerHTML = [
+          statMarkup(state.data.weeks.length, "weeks"),
+          statMarkup(readings.length, "total readings"),
+          statMarkup(counts.uni_provided_core || 0, "core"),
+          statMarkup(counts.uni_provided_additional || 0, "additional"),
+          statMarkup(counts.wider_from_my_responses || 0, "wider")
+        ].join("");
+      }
+
+      function statMarkup(value, label) {
+        return `<div class="stat"><strong>${escapeHtml(String(value))}</strong><span>${escapeHtml(label)}</span></div>`;
+      }
+
+      function renderTiles() {
+        els.tileGroups.innerHTML = tileSections.map((section) => {
+          const tiles = section.weeks
+            .map((weekNumber) => state.data.weeks.find((week) => week.week === weekNumber))
+            .filter(Boolean)
+            .map((week) => {
+              const readings = readingsForWeek(week);
+              const counts = countByCategory(readings);
+              return `
+                <a class="week-tile" href="#week-${week.week}">
+                  <span class="week-number">Week ${week.week}</span>
+                  <h3>${escapeHtml(displayTitle(week))}</h3>
+                  <div class="count-row">
+                    ${badge("core", `${counts.uni_provided_core || 0} core`)}
+                    ${badge("additional", `${counts.uni_provided_additional || 0} additional`)}
+                    ${badge("wider", `${counts.wider_from_my_responses || 0} wider`)}
+                  </div>
+                </a>
+              `;
+            }).join("");
+
+          return `
+            <div class="tile-group">
+              <div class="section-heading">
+                <div>
+                  <h3>${escapeHtml(section.title)}</h3>
+                  <p>${escapeHtml(section.description)}</p>
+                </div>
+              </div>
+              <div class="week-grid">${tiles}</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderFilters() {
+        const readings = flattenReadings();
+        setOptions(els.weekFilter, [
+          ["all", "All weeks"],
+          ...state.data.weeks.map((week) => [String(week.week), `Week ${week.week} - ${displayTitle(week)}`])
+        ]);
+        setOptions(els.categoryFilter, [
+          ["all", "All categories"],
+          ...unique(readings.map((reading) => reading.category)).map((category) => [category, category])
+        ]);
+        setOptions(els.kindFilter, [
+          ["all", "Core, additional and wider"],
+          ...expectedCategories.map((category) => [category, shortLabels[category]])
+        ]);
+        setOptions(els.originFilter, [
+          ["all", "All source origins"],
+          ...unique(readings.map((reading) => reading.listed_in).filter(Boolean)).map((origin) => [origin, origin])
+        ]);
+      }
+
+      function setOptions(select, options) {
+        select.innerHTML = options
+          .map(([value, label]) => `<option value="${escapeAttr(value)}">${escapeHtml(label)}</option>`)
+          .join("");
+      }
+
+      function renderWeeklyReadings() {
+        const filteredIds = new Set(filteredReadings().map((reading) => reading.id));
+        els.resultCount.textContent = `${filteredIds.size} reading${filteredIds.size === 1 ? "" : "s"} shown`;
+
+        els.weeklyContainer.innerHTML = state.data.weeks.map((week) => {
+          const matchingInWeek = readingsForWeek(week).filter((reading) => filteredIds.has(reading.id));
+          const weeklyNote = state.data.metadata?.weekly_notes?.[week.week] || "";
+          const groups = expectedCategories.map((category) => {
+            const section = week.sections.find((item) => item.category === category);
+            const readings = section ? section.readings.filter((reading) => filteredIds.has(reading.id)) : [];
+            return renderReadingGroup(category, section ? section.title : categoryLabels[category], readings);
+          }).join("");
+
+          const hiddenClass = matchingInWeek.length === 0 ? " hidden" : "";
+          const jsonTitle = week.title && week.title !== displayTitle(week)
+            ? `<p>Data title: ${escapeHtml(week.title)}</p>`
+            : "";
+
+          return `
+            <article id="week-${week.week}" class="week-section${hiddenClass}">
+              <header class="week-header">
+                <span class="week-number">Week ${week.week}</span>
+                <h3>${escapeHtml(displayTitle(week))}</h3>
+                ${jsonTitle}
+              </header>
+              ${groups}
+              <details class="response">
+                <summary>My task response</summary>
+                <p class="empty">No response text has been added yet.</p>
+                ${weeklyNote ? `<p class="notes">${escapeHtml(weeklyNote)}</p>` : ""}
+              </details>
+            </article>
+          `;
+        }).join("");
+
+        document.querySelectorAll("[data-copy-citation]").forEach((button) => {
+          button.addEventListener("click", async () => {
+            const citation = button.getAttribute("data-copy-citation");
+            await navigator.clipboard.writeText(citation);
+            button.textContent = "Copied";
+            window.setTimeout(() => {
+              button.textContent = "Copy citation";
+            }, 1400);
+          });
+        });
+      }
+
+      function renderReadingGroup(category, sectionTitle, readings) {
+        const list = readings.length
+          ? `<div class="reading-list">${readings.map(renderReadingCard).join("")}</div>`
+          : `<p class="empty">No readings listed for this group.</p>`;
+
+        return `
+          <section class="reading-group" data-category="${escapeAttr(category)}">
+            <div class="group-title">
+              <h4>${escapeHtml(categoryLabels[category] || sectionTitle)}</h4>
+              <span class="badge ${categoryClass(category)}">${escapeHtml(category)}</span>
+            </div>
+            ${list}
+          </section>
+        `;
+      }
+
+      function renderReadingCard(reading) {
+        const primaryLink = reading.url || reading.doi_url || "";
+        const title = primaryLink
+          ? `<a class="reading-title" href="${escapeAttr(primaryLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(reading.title || "Untitled reading")}</a>`
+          : `<span class="reading-title no-link">${escapeHtml(reading.title || "Untitled reading")}</span>`;
+        const sourceParts = [
+          reading.source,
+          reading.volume ? `Vol. ${reading.volume}` : "",
+          reading.issue ? `Issue ${reading.issue}` : "",
+          reading.pages ? `pp. ${reading.pages}` : ""
+        ].filter(Boolean);
+        const linkButtons = renderLinkButtons(reading);
+
+        return `
+          <article class="reading-card ${categoryClass(reading.category)}-border">
+            <div>
+              ${title}
+              <div class="meta">
+                <span>${escapeHtml(formatAuthors(reading.authors))}</span>
+                <span>${escapeHtml(reading.year || reading.publication_date_raw || "No year supplied")}</span>
+                <span>${escapeHtml(reading.reading_type || "No type supplied")}</span>
+                ${sourceParts.length ? `<span>${escapeHtml(sourceParts.join(", "))}</span>` : ""}
+              </div>
+            </div>
+            <div class="legend">
+              ${badge(categoryClass(reading.category), shortLabels[reading.category] || reading.category)}
+              ${badge("origin", reading.listed_in || "No origin supplied")}
+              ${reading.category ? badge("origin", reading.category) : ""}
+            </div>
+            <div class="actions">${linkButtons}</div>
+            <div class="citation" aria-label="Harvard-style citation">${escapeHtml(reading.citation || "No citation supplied")}</div>
+            <button class="button secondary" type="button" data-copy-citation="${escapeAttr(reading.citation || "")}">Copy citation</button>
+            ${reading.notes ? `<p class="notes">${escapeHtml(reading.notes)}</p>` : ""}
+          </article>
+        `;
+      }
+
+      function renderLinkButtons(reading) {
+        const buttons = [];
+        if (reading.url) {
+          buttons.push(`<a class="button" href="${escapeAttr(reading.url)}" target="_blank" rel="noopener noreferrer">Open supplied URL</a>`);
+        }
+        if (reading.doi_url) {
+          buttons.push(`<a class="button secondary" href="${escapeAttr(reading.doi_url)}" target="_blank" rel="noopener noreferrer">Open DOI URL</a>`);
+        } else if (reading.doi) {
+          buttons.push(`<span class="button secondary" aria-label="DOI">DOI: ${escapeHtml(reading.doi)}</span>`);
+        }
+        if (!buttons.length) {
+          buttons.push(`<span class="button secondary" aria-disabled="true">No link available</span>`);
+        }
+        return buttons.join("");
+      }
+
+      function renderWikiNav() {
+        els.wikiNav.innerHTML = state.data.weeks.map((week) => {
+          const readings = readingsForWeek(week).map((reading) => `
+            <button class="wiki-reading" type="button" data-reading-id="${escapeAttr(reading.id)}">
+              ${escapeHtml(reading.title || "Untitled reading")}
+            </button>
+          `).join("");
+          return `
+            <section class="wiki-week">
+              <h4>Week ${week.week}</h4>
+              ${readings || `<p class="empty">No readings listed.</p>`}
+            </section>
+          `;
+        }).join("");
+
+        els.wikiNav.querySelectorAll("[data-reading-id]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const reading = flattenReadings().find((item) => item.id === button.dataset.readingId);
+            renderWikiDetail(reading);
+          });
+        });
+      }
+
+      function renderWikiDetail(reading) {
+        if (!reading) {
+          els.wikiDetail.innerHTML = `<p class="empty">Select a reading from the index.</p>`;
+          return;
+        }
+        state.selectedWikiId = reading.id;
+        els.wikiNav.querySelectorAll(".wiki-reading").forEach((button) => {
+          button.classList.toggle("active", button.dataset.readingId === reading.id);
+        });
+        const week = state.data.weeks.find((item) => item.week === reading.week);
+        els.wikiDetail.innerHTML = `
+          <span class="week-number">Week ${reading.week}</span>
+          <h3>${escapeHtml(reading.title || "Untitled reading")}</h3>
+          <div class="meta">
+            <span>${escapeHtml(formatAuthors(reading.authors))}</span>
+            <span>${escapeHtml(reading.year || reading.publication_date_raw || "No year supplied")}</span>
+            <span>${escapeHtml(reading.source || "No source supplied")}</span>
+            <span>${escapeHtml(reading.reading_type || "No type supplied")}</span>
+          </div>
+          <div class="legend">
+            ${badge(categoryClass(reading.category), shortLabels[reading.category] || reading.category)}
+            ${badge("origin", reading.listed_in || "No origin supplied")}
+            ${badge("origin", `Week title: ${displayTitle(week)}`)}
+          </div>
+          <div class="actions">${renderLinkButtons(reading)}</div>
+          <div class="citation">${escapeHtml(reading.citation || "No citation supplied")}</div>
+          ${reading.notes ? `<p class="notes">${escapeHtml(reading.notes)}</p>` : ""}
+          <div class="full-text-placeholder">
+            <strong>Full text / notes</strong>
+            <p>Full text is not stored in this site yet. Add permitted text, summaries or notes later.</p>
+          </div>
+        `;
+      }
+
+      function filteredReadings() {
+        return flattenReadings().filter((reading) => {
+          const week = state.data.weeks.find((item) => item.week === reading.week);
+          const haystack = [
+            reading.title,
+            formatAuthors(reading.authors),
+            reading.citation,
+            reading.source,
+            reading.notes,
+            reading.week_title,
+            displayTitle(week)
+          ].join(" ").toLowerCase();
+
+          const matchesSearch = !state.filters.search || haystack.includes(state.filters.search);
+          const matchesWeek = state.filters.week === "all" || String(reading.week) === state.filters.week;
+          const matchesCategory = state.filters.category === "all" || reading.category === state.filters.category;
+          const matchesKind = state.filters.kind === "all" || reading.category === state.filters.kind;
+          const matchesOrigin = state.filters.origin === "all" || reading.listed_in === state.filters.origin;
+
+          return matchesSearch && matchesWeek && matchesCategory && matchesKind && matchesOrigin;
+        });
+      }
+
+      function flattenReadings() {
+        return state.data.weeks.flatMap(readingsForWeek);
+      }
+
+      function readingsForWeek(week) {
+        return week.sections.flatMap((section) => section.readings);
+      }
+
+      function countByCategory(readings) {
+        return readings.reduce((counts, reading) => {
+          counts[reading.category] = (counts[reading.category] || 0) + 1;
+          return counts;
+        }, {});
+      }
+
+      function displayTitle(week) {
+        if (!week) return "";
+        return weekDisplayTitles[week.week] || week.title || `Week ${week.week}`;
+      }
+
+      function formatAuthors(authors) {
+        return Array.isArray(authors) && authors.length ? authors.join("; ") : "No author supplied";
+      }
+
+      function categoryClass(category) {
+        if (category === "uni_provided_core") return "core";
+        if (category === "uni_provided_additional") return "additional";
+        if (category === "wider_from_my_responses") return "wider";
+        return "origin";
+      }
+
+      function badge(type, text) {
+        return `<span class="badge ${escapeAttr(type)}">${escapeHtml(text)}</span>`;
+      }
+
+      function unique(values) {
+        return [...new Set(values)];
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function escapeAttr(value) {
+        return escapeHtml(value);
+      }
+    </script>
+  </body>
+</html>
