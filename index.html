@@ -143,69 +143,6 @@
         max-width: 760px;
       }
 
-      .stats {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-      .stat {
-        border: 1px solid var(--line);
-        border-radius: 6px;
-        background: var(--surface);
-        padding: 10px 12px;
-      }
-
-      .stat strong {
-        display: block;
-        font-size: 1.2rem;
-      }
-
-      .stat span {
-        color: var(--muted);
-        font-size: 0.82rem;
-      }
-
-      .legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-
-      .badge {
-        align-items: center;
-        border: 1px solid transparent;
-        border-radius: 999px;
-        display: inline-flex;
-        font-size: 0.76rem;
-        font-weight: 700;
-        gap: 6px;
-        line-height: 1;
-        padding: 6px 8px;
-        text-transform: uppercase;
-        white-space: nowrap;
-      }
-
-      .badge.core {
-        background: #e3f0e8;
-        color: var(--core);
-      }
-
-      .badge.additional {
-        background: #f1e6cf;
-        color: var(--additional);
-      }
-
-      .badge.wider {
-        background: #eadff0;
-        color: var(--wider);
-      }
-
-      .badge.origin {
-        background: #edf0f2;
-        color: #39434b;
-      }
-
       .section-heading {
         align-items: end;
         display: flex;
@@ -262,13 +199,6 @@
 
       .week-tile h3 {
         font-size: 1.22rem;
-      }
-
-      .count-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: auto;
       }
 
       .app-grid {
@@ -348,11 +278,6 @@
         opacity: 0.6;
       }
 
-      .result-count {
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-
       .week-section {
         background: rgba(255, 253, 250, 0.68);
         border: 1px solid var(--line);
@@ -387,11 +312,6 @@
       }
 
       .group-title {
-        align-items: center;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        justify-content: space-between;
         margin-bottom: 12px;
       }
 
@@ -651,19 +571,12 @@
           separating university-provided material from wider reading, and keeping task response notes visible.
         </p>
         <div id="load-error" class="error hidden" role="alert"></div>
-        <div id="stats" class="stats" aria-label="Reading counts"></div>
-        <div class="legend" aria-label="Reading labels">
-          <span class="badge core">Core</span>
-          <span class="badge additional">Additional</span>
-          <span class="badge wider">Wider reading</span>
-        </div>
       </section>
 
       <section id="week-tiles" aria-labelledby="week-tiles-title">
         <div class="section-heading">
           <div>
             <h2 id="week-tiles-title">Weeks</h2>
-            <p>Browse the course in three readable clusters.</p>
           </div>
         </div>
         <div id="tile-groups"></div>
@@ -673,9 +586,7 @@
         <div class="section-heading">
           <div>
             <h2 id="search-title">Search</h2>
-            <p>Search title, author, citation, source, notes and week title.</p>
           </div>
-          <p id="result-count" class="result-count"></p>
         </div>
       </section>
 
@@ -683,7 +594,6 @@
         <div class="section-heading">
           <div>
             <h2 id="weekly-title">Weekly readings</h2>
-            <p>Readings are grouped by the category fields supplied in <code>readings.json</code>.</p>
           </div>
         </div>
         <div class="app-grid">
@@ -720,7 +630,6 @@
         <div class="section-heading">
           <div>
             <h2 id="wiki-title">Reading wiki</h2>
-            <p>A structured index for bibliographic metadata, citation copying and future notes.</p>
           </div>
         </div>
         <div class="wiki-layout">
@@ -796,12 +705,10 @@
 
       const els = {
         loadError: document.querySelector("#load-error"),
-        stats: document.querySelector("#stats"),
         tileGroups: document.querySelector("#tile-groups"),
         weeklyContainer: document.querySelector("#weekly-container"),
         wikiNav: document.querySelector("#wiki-nav"),
         wikiDetail: document.querySelector("#wiki-detail"),
-        resultCount: document.querySelector("#result-count"),
         searchInput: document.querySelector("#search-input"),
         weekFilter: document.querySelector("#week-filter"),
         categoryFilter: document.querySelector("#category-filter"),
@@ -830,7 +737,6 @@
       }
 
       function renderAll() {
-        renderStats();
         renderTiles();
         renderFilters();
         renderWeeklyReadings();
@@ -867,39 +773,16 @@
         });
       }
 
-      function renderStats() {
-        const readings = flattenReadings();
-        const counts = countByCategory(readings);
-        els.stats.innerHTML = [
-          statMarkup(state.data.weeks.length, "weeks"),
-          statMarkup(readings.length, "total readings"),
-          statMarkup(counts.uni_provided_core || 0, "core"),
-          statMarkup(counts.uni_provided_additional || 0, "additional"),
-          statMarkup(counts.wider_from_my_responses || 0, "wider")
-        ].join("");
-      }
-
-      function statMarkup(value, label) {
-        return `<div class="stat"><strong>${escapeHtml(String(value))}</strong><span>${escapeHtml(label)}</span></div>`;
-      }
-
       function renderTiles() {
         els.tileGroups.innerHTML = tileSections.map((section) => {
           const tiles = section.weeks
             .map((weekNumber) => state.data.weeks.find((week) => week.week === weekNumber))
             .filter(Boolean)
             .map((week) => {
-              const readings = readingsForWeek(week);
-              const counts = countByCategory(readings);
               return `
                 <a class="week-tile" href="#week-${week.week}">
                   <span class="week-number">Week ${week.week}</span>
                   <h3>${escapeHtml(displayTitle(week))}</h3>
-                  <div class="count-row">
-                    ${badge("core", `${counts.uni_provided_core || 0} core`)}
-                    ${badge("additional", `${counts.uni_provided_additional || 0} additional`)}
-                    ${badge("wider", `${counts.wider_from_my_responses || 0} wider`)}
-                  </div>
                 </a>
               `;
             }).join("");
@@ -909,7 +792,6 @@
               <div class="section-heading">
                 <div>
                   <h3>${escapeHtml(section.title)}</h3>
-                  <p>${escapeHtml(section.description)}</p>
                 </div>
               </div>
               <div class="week-grid">${tiles}</div>
@@ -946,7 +828,6 @@
 
       function renderWeeklyReadings() {
         const filteredIds = new Set(filteredReadings().map((reading) => reading.id));
-        els.resultCount.textContent = `${filteredIds.size} reading${filteredIds.size === 1 ? "" : "s"} shown`;
 
         els.weeklyContainer.innerHTML = state.data.weeks.map((week) => {
           const matchingInWeek = readingsForWeek(week).filter((reading) => filteredIds.has(reading.id));
@@ -958,16 +839,11 @@
           }).join("");
 
           const hiddenClass = matchingInWeek.length === 0 ? " hidden" : "";
-          const jsonTitle = week.title && week.title !== displayTitle(week)
-            ? `<p>Data title: ${escapeHtml(week.title)}</p>`
-            : "";
-
           return `
             <article id="week-${week.week}" class="week-section${hiddenClass}">
               <header class="week-header">
                 <span class="week-number">Week ${week.week}</span>
                 <h3>${escapeHtml(displayTitle(week))}</h3>
-                ${jsonTitle}
               </header>
               ${groups}
               <details class="response">
@@ -1000,7 +876,6 @@
           <section class="reading-group" data-category="${escapeAttr(category)}">
             <div class="group-title">
               <h4>${escapeHtml(categoryLabels[category] || sectionTitle)}</h4>
-              <span class="badge ${categoryClass(category)}">${escapeHtml(category)}</span>
             </div>
             ${list}
           </section>
@@ -1030,11 +905,6 @@
                 <span>${escapeHtml(reading.reading_type || "No type supplied")}</span>
                 ${sourceParts.length ? `<span>${escapeHtml(sourceParts.join(", "))}</span>` : ""}
               </div>
-            </div>
-            <div class="legend">
-              ${badge(categoryClass(reading.category), shortLabels[reading.category] || reading.category)}
-              ${badge("origin", reading.listed_in || "No origin supplied")}
-              ${reading.category ? badge("origin", reading.category) : ""}
             </div>
             <div class="actions">${linkButtons}</div>
             <div class="citation" aria-label="Harvard-style citation">${escapeHtml(reading.citation || "No citation supplied")}</div>
@@ -1092,7 +962,6 @@
         els.wikiNav.querySelectorAll(".wiki-reading").forEach((button) => {
           button.classList.toggle("active", button.dataset.readingId === reading.id);
         });
-        const week = state.data.weeks.find((item) => item.week === reading.week);
         els.wikiDetail.innerHTML = `
           <span class="week-number">Week ${reading.week}</span>
           <h3>${escapeHtml(reading.title || "Untitled reading")}</h3>
@@ -1101,11 +970,6 @@
             <span>${escapeHtml(reading.year || reading.publication_date_raw || "No year supplied")}</span>
             <span>${escapeHtml(reading.source || "No source supplied")}</span>
             <span>${escapeHtml(reading.reading_type || "No type supplied")}</span>
-          </div>
-          <div class="legend">
-            ${badge(categoryClass(reading.category), shortLabels[reading.category] || reading.category)}
-            ${badge("origin", reading.listed_in || "No origin supplied")}
-            ${badge("origin", `Week title: ${displayTitle(week)}`)}
           </div>
           <div class="actions">${renderLinkButtons(reading)}</div>
           <div class="citation">${escapeHtml(reading.citation || "No citation supplied")}</div>
@@ -1148,13 +1012,6 @@
         return week.sections.flatMap((section) => section.readings);
       }
 
-      function countByCategory(readings) {
-        return readings.reduce((counts, reading) => {
-          counts[reading.category] = (counts[reading.category] || 0) + 1;
-          return counts;
-        }, {});
-      }
-
       function displayTitle(week) {
         if (!week) return "";
         return weekDisplayTitles[week.week] || week.title || `Week ${week.week}`;
@@ -1169,10 +1026,6 @@
         if (category === "uni_provided_additional") return "additional";
         if (category === "wider_from_my_responses") return "wider";
         return "origin";
-      }
-
-      function badge(type, text) {
-        return `<span class="badge ${escapeAttr(type)}">${escapeHtml(text)}</span>`;
       }
 
       function unique(values) {
