@@ -383,7 +383,43 @@
         border-radius: 6px;
         color: #38322b;
         font-family: Georgia, "Times New Roman", serif;
+        font-size: 0.94rem;
+        line-height: 1.45;
         padding: 12px;
+      }
+
+      .reference-details,
+      .source-details {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fffdf8;
+      }
+
+      .reference-details summary,
+      .source-details summary {
+        cursor: pointer;
+        font-weight: 800;
+        padding: 10px 12px;
+      }
+
+      .reference-details .citation,
+      .source-details .source-raw {
+        border: 0;
+        border-top: 1px solid var(--line);
+        border-radius: 0 0 6px 6px;
+      }
+
+      .source-raw {
+        color: var(--muted);
+        display: grid;
+        font-size: 0.86rem;
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .source-raw a,
+      .source-raw code {
+        overflow-wrap: anywhere;
       }
 
       .notes {
@@ -619,7 +655,7 @@
                 <label for="origin-filter">Source origin</label>
                 <select id="origin-filter"></select>
               </div>
-              <button id="clear-filters" class="button secondary" type="button">Clear filters</button>
+              <button id="clear-filters" class="button secondary" type="button" onclick="clearFilters()">Clear filters</button>
             </div>
           </aside>
           <div id="weekly-container"></div>
@@ -763,15 +799,21 @@
         });
 
         els.clearFilters.addEventListener("click", () => {
-          state.filters = { search: "", week: "all", category: "all", kind: "all", origin: "all" };
-          els.searchInput.value = "";
-          els.weekFilter.value = "all";
-          els.categoryFilter.value = "all";
-          els.kindFilter.value = "all";
-          els.originFilter.value = "all";
-          renderWeeklyReadings();
+          clearFilters();
         });
       }
+
+      function clearFilters() {
+        state.filters = { search: "", week: "all", category: "all", kind: "all", origin: "all" };
+        els.searchInput.value = "";
+        els.weekFilter.value = "all";
+        els.categoryFilter.value = "all";
+        els.kindFilter.value = "all";
+        els.originFilter.value = "all";
+        renderWeeklyReadings();
+      }
+
+      window.clearFilters = clearFilters;
 
       function renderTiles() {
         els.tileGroups.innerHTML = tileSections.map((section) => {
@@ -855,13 +897,19 @@
           `;
         }).join("");
 
-        document.querySelectorAll("[data-copy-citation]").forEach((button) => {
+        bindCopyButtons();
+      }
+
+      function bindCopyButtons() {
+        document.querySelectorAll("[data-copy-reading-id]").forEach((button) => {
+          if (button.dataset.copyBound === "true") return;
+          button.dataset.copyBound = "true";
           button.addEventListener("click", async () => {
-            const citation = button.getAttribute("data-copy-citation");
-            await navigator.clipboard.writeText(citation);
+            const readingId = button.getAttribute("data-copy-reading-id");
+            await copyCitation(readingId);
             button.textContent = "Copied";
             window.setTimeout(() => {
-              button.textContent = "Copy citation";
+              button.textContent = "Copy Harvard reference";
             }, 1400);
           });
         });
@@ -883,58 +931,40 @@
       }
 
       function renderReadingCard(reading) {
-        const primaryLink = reading.url || reading.doi_url || "";
-        const title = primaryLink
-          ? `<a class="reading-title" href="${escapeAttr(primaryLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(reading.title || "Untitled reading")}</a>`
-          : `<span class="reading-title no-link">${escapeHtml(reading.title || "Untitled reading")}</span>`;
-        const sourceParts = [
-          reading.source,
-          reading.volume ? `Vol. ${reading.volume}` : "",
-          reading.issue ? `Issue ${reading.issue}` : "",
-          reading.pages ? `pp. ${reading.pages}` : ""
+        const primaryLink = getPrimaryTitleLink(reading);
+        const displayTitle = getDisplayTitle(reading);
+        const reference = formatHarvardReference(reading);
+        const metadata = [
+          formatAuthorsForDisplay(reading),
+          cleanYear(reading.year) || "n.d.",
+          cleanText(reading.reading_type)
         ].filter(Boolean);
-        const linkButtons = renderLinkButtons(reading);
+        const sourceDetail = formatSourceDetailLine(reading);
+        const title = primaryLink
+          ? `<a class="reading-title" href="${escapeAttr(primaryLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(displayTitle)}</a>`
+          : `<span class="reading-title no-link">${escapeHtml(displayTitle)}</span>`;
 
         return `
           <article class="reading-card ${categoryClass(reading.category)}-border">
             <div>
               ${title}
-              <div class="meta">
-                <span>${escapeHtml(formatAuthors(reading.authors))}</span>
-                <span>${escapeHtml(reading.year || reading.publication_date_raw || "No year supplied")}</span>
-                <span>${escapeHtml(reading.reading_type || "No type supplied")}</span>
-                ${sourceParts.length ? `<span>${escapeHtml(sourceParts.join(", "))}</span>` : ""}
-              </div>
+              <div class="meta">${metadata.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>
+              ${sourceDetail ? `<div class="meta"><span>${escapeHtml(sourceDetail)}</span></div>` : ""}
             </div>
-            <div class="actions">${linkButtons}</div>
-            <div class="citation" aria-label="Harvard-style citation">${escapeHtml(reading.citation || "No citation supplied")}</div>
-            <button class="button secondary" type="button" data-copy-citation="${escapeAttr(reading.citation || "")}">Copy citation</button>
+            <div class="actions">${renderAccessButtons(reading)}</div>
+            ${renderHarvardReference(reference)}
+            <button class="button secondary" type="button" data-copy-reading-id="${escapeAttr(reading.id)}">Copy Harvard reference</button>
+            ${renderSourceAccessDetails(reading)}
             ${reading.notes ? `<p class="notes">${escapeHtml(reading.notes)}</p>` : ""}
           </article>
         `;
-      }
-
-      function renderLinkButtons(reading) {
-        const buttons = [];
-        if (reading.url) {
-          buttons.push(`<a class="button" href="${escapeAttr(reading.url)}" target="_blank" rel="noopener noreferrer">Open supplied URL</a>`);
-        }
-        if (reading.doi_url) {
-          buttons.push(`<a class="button secondary" href="${escapeAttr(reading.doi_url)}" target="_blank" rel="noopener noreferrer">Open DOI URL</a>`);
-        } else if (reading.doi) {
-          buttons.push(`<span class="button secondary" aria-label="DOI">DOI: ${escapeHtml(reading.doi)}</span>`);
-        }
-        if (!buttons.length) {
-          buttons.push(`<span class="button secondary" aria-disabled="true">No link available</span>`);
-        }
-        return buttons.join("");
       }
 
       function renderWikiNav() {
         els.wikiNav.innerHTML = state.data.weeks.map((week) => {
           const readings = readingsForWeek(week).map((reading) => `
             <button class="wiki-reading" type="button" data-reading-id="${escapeAttr(reading.id)}">
-              ${escapeHtml(reading.title || "Untitled reading")}
+              ${escapeHtml(getDisplayTitle(reading))}
             </button>
           `).join("");
           return `
@@ -962,32 +992,329 @@
         els.wikiNav.querySelectorAll(".wiki-reading").forEach((button) => {
           button.classList.toggle("active", button.dataset.readingId === reading.id);
         });
+        const reference = formatHarvardReference(reading);
+        const metadata = [
+          formatAuthorsForDisplay(reading),
+          cleanYear(reading.year) || "n.d.",
+          cleanText(reading.reading_type)
+        ].filter(Boolean);
+        const sourceDetail = formatSourceDetailLine(reading);
         els.wikiDetail.innerHTML = `
           <span class="week-number">Week ${reading.week}</span>
-          <h3>${escapeHtml(reading.title || "Untitled reading")}</h3>
-          <div class="meta">
-            <span>${escapeHtml(formatAuthors(reading.authors))}</span>
-            <span>${escapeHtml(reading.year || reading.publication_date_raw || "No year supplied")}</span>
-            <span>${escapeHtml(reading.source || "No source supplied")}</span>
-            <span>${escapeHtml(reading.reading_type || "No type supplied")}</span>
-          </div>
-          <div class="actions">${renderLinkButtons(reading)}</div>
-          <div class="citation">${escapeHtml(reading.citation || "No citation supplied")}</div>
+          <h3>${escapeHtml(getDisplayTitle(reading))}</h3>
+          <div class="meta">${metadata.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>
+          ${sourceDetail ? `<div class="meta"><span>${escapeHtml(sourceDetail)}</span></div>` : ""}
+          <div class="actions">${renderAccessButtons(reading)}</div>
+          ${renderHarvardReference(reference)}
+          <button class="button secondary" type="button" data-copy-reading-id="${escapeAttr(reading.id)}">Copy Harvard reference</button>
+          ${renderSourceAccessDetails(reading)}
           ${reading.notes ? `<p class="notes">${escapeHtml(reading.notes)}</p>` : ""}
           <div class="full-text-placeholder">
             <strong>Full text / notes</strong>
             <p>Full text is not stored in this site yet. Add permitted text, summaries or notes later.</p>
           </div>
         `;
+        bindCopyButtons();
+      }
+
+      function cleanText(value) {
+        if (value === null || value === undefined) return "";
+        const text = String(value)
+          .replace(/\s+/g, " ")
+          .replace(/\s+([,.;:])/g, "$1")
+          .trim();
+        if (!text || /^no .* supplied$/i.test(text) || text.toLowerCase() === "undefined") return "";
+        return text;
+      }
+
+      function cleanYear(value) {
+        const text = cleanText(value);
+        const match = text.match(/\b(18|19|20)\d{2}\b/);
+        return match ? match[0] : "";
+      }
+
+      function cleanNumber(value) {
+        const text = cleanText(value);
+        if (!text) return "";
+        return text.replace(/\.0\b/g, "");
+      }
+
+      function cleanPages(value) {
+        const text = cleanText(value);
+        if (!text) return "";
+        if (/^\d{1,2}-[A-Za-z]{3}$/i.test(text)) return "";
+        if (/online resource|pages?\)$/i.test(text)) return "";
+        return text.replace(/\.0\b/g, "");
+      }
+
+      function cleanDoi(value) {
+        return cleanText(value)
+          .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "")
+          .replace(/^doi:\s*/i, "")
+          .trim();
+      }
+
+      function isInstitutionalResolverUrl(url) {
+        const text = cleanText(url).toLowerCase();
+        return Boolean(text) && [
+          "alma.exlibrisgroup.com",
+          "primo.exlibrisgroup.com",
+          "librarysearch.manchester.ac.uk",
+          "manchester.idm.oclc.org",
+          "openurl",
+          "uresolver",
+          "ctx_ver=",
+          "rft_val_fmt="
+        ].some((pattern) => text.includes(pattern));
+      }
+
+      function isCleanPublicUrl(url) {
+        const text = cleanText(url);
+        return /^https?:\/\//i.test(text) && !isInstitutionalResolverUrl(text);
+      }
+
+      function getDoiUrl(reading) {
+        const doi = cleanDoi(reading.doi);
+        const doiUrl = cleanText(reading.doi_url);
+        if (doiUrl && /^https?:\/\//i.test(doiUrl)) return doiUrl;
+        return doi ? `https://doi.org/${doi}` : "";
+      }
+
+      function getPrimaryAccessLinks(reading) {
+        const links = [];
+        const suppliedUrl = cleanText(reading.url);
+        const doiUrl = getDoiUrl(reading);
+        if (suppliedUrl) {
+          links.push({
+            label: isInstitutionalResolverUrl(suppliedUrl) ? "Open library link" : "Open link",
+            url: suppliedUrl,
+            kind: isInstitutionalResolverUrl(suppliedUrl) ? "library" : "public"
+          });
+        }
+        if (doiUrl) {
+          links.push({ label: "Open DOI", url: doiUrl, kind: "doi" });
+        }
+        return links;
+      }
+
+      function getPrimaryTitleLink(reading) {
+        const links = getPrimaryAccessLinks(reading);
+        const publicLink = links.find((link) => link.kind === "public");
+        const libraryLink = links.find((link) => link.kind === "library");
+        const doiLink = links.find((link) => link.kind === "doi");
+        return publicLink?.url || libraryLink?.url || doiLink?.url || "";
+      }
+
+      function renderAccessButtons(reading) {
+        const links = getPrimaryAccessLinks(reading);
+        if (!links.length) {
+          return `<span class="button secondary" aria-disabled="true">No link supplied</span>`;
+        }
+        return links.map((link) =>
+          `<a class="button secondary" href="${escapeAttr(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)}</a>`
+        ).join("");
+      }
+
+      function formatAuthorsForDisplay(reading) {
+        const authors = Array.isArray(reading.authors) ? reading.authors.map(cleanText).filter(Boolean) : [];
+        return authors.length ? authors.join("; ") : "No author listed";
+      }
+
+      function formatAuthorsForHarvard(reading) {
+        const authors = Array.isArray(reading.authors) ? reading.authors.map(cleanText).filter(Boolean) : [];
+        if (!authors.length) return "Anon.";
+        if (authors.length === 1) return authors[0];
+        if (authors.length === 2) return `${authors[0]} and ${authors[1]}`;
+        return `${authors.slice(0, -1).join(", ")} and ${authors[authors.length - 1]}`;
+      }
+
+      function getDisplayTitle(reading) {
+        let title = cleanText(reading.title) || "Untitled reading";
+        title = title.replace(/\s+Available at:\s+https?:\/\/\S+.*$/i, "");
+        const citedTitle = title.match(/^\s*.+?\((?:n\.d\.|\d{4})\)\.?\s*[‘'"]?([^’'".]+(?:[?]))[’'"]?/i);
+        if (reading.category === "wider_from_my_responses" && citedTitle?.[1]) {
+          title = citedTitle[1];
+        }
+        return tidySentence(title);
+      }
+
+      function formatJournalDetails(reading) {
+        const source = cleanText(reading.source);
+        const volume = cleanNumber(reading.volume);
+        const issue = cleanNumber(reading.issue);
+        const pages = cleanPages(reading.pages);
+        const volumeIssue = volume && issue ? `${volume}(${issue})` : volume || "";
+        return [source, volumeIssue, pages ? `pp. ${pages}` : ""].filter(Boolean);
+      }
+
+      function formatBookDetails(reading) {
+        return [cleanText(reading.source)].filter(Boolean);
+      }
+
+      function formatWebsiteDetails(reading) {
+        return [cleanText(reading.source)].filter(Boolean);
+      }
+
+      function formatSourceDetailLine(reading) {
+        const type = cleanText(reading.reading_type).toLowerCase();
+        let details;
+        if (type.includes("article")) {
+          details = formatJournalDetails(reading);
+        } else if (type.includes("book")) {
+          details = formatBookDetails(reading);
+        } else {
+          details = formatWebsiteDetails(reading);
+        }
+        return details.join(" · ");
+      }
+
+      function formatHarvardReference(reading) {
+        if (reading.category === "wider_from_my_responses") {
+          const supplied = cleanExistingCitation(reading.citation);
+          if (supplied && !isInstitutionalResolverUrl(supplied)) return supplied;
+        }
+
+        const type = cleanText(reading.reading_type).toLowerCase();
+        if (type.includes("youtube") || type.includes("video")) return formatVideoReference(reading);
+        if (type.includes("book chapter")) return formatBookChapterReference(reading);
+        if (type === "book") return formatBookReference(reading);
+        if (type.includes("article") && !looksLikeNewsOrBlog(reading)) return formatArticleReference(reading);
+        return formatOnlineReference(reading);
+      }
+
+      function formatArticleReference(reading) {
+        const authors = formatAuthorsForHarvard(reading);
+        const year = cleanYear(reading.year) || "n.d.";
+        const title = getDisplayTitle(reading);
+        const journal = cleanText(reading.source);
+        const [, volumeIssue, pages] = formatJournalDetails(reading);
+        const doi = cleanDoi(reading.doi);
+        const publicUrl = isCleanPublicUrl(reading.url) ? cleanText(reading.url) : "";
+        const tail = [
+          journal,
+          volumeIssue,
+          pages,
+          doi ? `doi:${doi}` : "",
+          !doi && publicUrl ? `Available at: ${publicUrl}` : ""
+        ].filter(Boolean).join(", ");
+        return tidyReference(`${authors} (${year}) ‘${title}’${tail ? `, ${tail}` : ""}.`);
+      }
+
+      function formatBookReference(reading) {
+        const authors = formatAuthorsForHarvard(reading);
+        const year = cleanYear(reading.year) || "n.d.";
+        const title = getDisplayTitle(reading);
+        const publisher = cleanText(reading.source);
+        return tidyReference(`${authors} (${year}) ${title}.${publisher ? ` ${publisher}.` : ""}`);
+      }
+
+      function formatBookChapterReference(reading) {
+        const authors = formatAuthorsForHarvard(reading);
+        const year = cleanYear(reading.year) || "n.d.";
+        const title = getDisplayTitle(reading);
+        const publisher = cleanText(reading.source);
+        const pages = cleanPages(reading.pages);
+        return tidyReference(`${authors} (${year}) ‘${title}’.${publisher ? ` ${publisher}.` : ""}${pages ? ` pp. ${pages}.` : ""}`);
+      }
+
+      function formatOnlineReference(reading) {
+        const authors = formatAuthorsForHarvard(reading);
+        const year = cleanYear(reading.year) || "n.d.";
+        const title = getDisplayTitle(reading);
+        const source = cleanText(reading.source);
+        const publicUrl = isCleanPublicUrl(reading.url) ? cleanText(reading.url) : "";
+        const type = cleanText(reading.reading_type).toLowerCase();
+        const titlePart = looksLikeNewsOrBlog(reading) ? `‘${title}’` : title;
+        const descriptor = type.includes("document") && !publicUrl ? " Document." : "";
+        return tidyReference(`${authors} (${year}) ${titlePart}.${source ? ` ${source}.` : ""}${descriptor}${publicUrl ? ` Available at: ${publicUrl}.` : ""}`);
+      }
+
+      function formatVideoReference(reading) {
+        const authors = formatAuthorsForHarvard(reading);
+        const year = cleanYear(reading.year) || "n.d.";
+        const title = getDisplayTitle(reading);
+        const publicUrl = isCleanPublicUrl(reading.url) ? cleanText(reading.url) : "";
+        return tidyReference(`${authors} (${year}) ${title} [YouTube video].${publicUrl ? ` Available at: ${publicUrl}.` : ""}`);
+      }
+
+      function looksLikeNewsOrBlog(reading) {
+        const text = `${reading.source || ""} ${reading.url || ""}`.toLowerCase();
+        return /guardian|reuters|lse|ft\.com|financial times|new yorker|blog/.test(text);
+      }
+
+      function cleanExistingCitation(value) {
+        let text = cleanText(value);
+        if (!text) return "";
+        text = text.replace(/\b(Vol\.\s*)?(\d+)\.0\b/gi, "$2");
+        text = text.replace(/,\s*pp\.\s*\d{1,2}-[A-Za-z]{3}\b/gi, "");
+        text = text.replace(/\s+Available at:\s+https?:\/\/\S*(alma\.exlibrisgroup\.com|primo\.exlibrisgroup\.com|openurl|uresolver|ctx_ver=|rft_val_fmt=)\S*/gi, "");
+        text = text.replace(/\b(Article|Website|Document|Book)\b(?=\s+[A-Z])/g, "");
+        return tidyReference(text);
+      }
+
+      function renderHarvardReference(reference) {
+        return `
+          <details class="reference-details" open>
+            <summary>Harvard reference</summary>
+            <div class="citation" aria-label="Harvard reference">${escapeHtml(reference)}</div>
+          </details>
+        `;
+      }
+
+      function renderSourceAccessDetails(reading) {
+        const rows = [
+          ["Supplied URL", cleanText(reading.url)],
+          ["DOI", cleanDoi(reading.doi)],
+          ["DOI URL", cleanText(reading.doi_url)],
+          ["Imported citation", cleanText(reading.citation)],
+          ["Source file", cleanText(reading.source_file)]
+        ].filter(([, value]) => value);
+        if (!rows.length) return "";
+        return `
+          <details class="source-details">
+            <summary>Source/access details</summary>
+            <div class="source-raw">
+              ${rows.map(([label, value]) => `<div><strong>${escapeHtml(label)}:</strong> ${formatRawValue(value)}</div>`).join("")}
+            </div>
+          </details>
+        `;
+      }
+
+      function formatRawValue(value) {
+        return /^https?:\/\//i.test(value)
+          ? `<a href="${escapeAttr(value)}" target="_blank" rel="noopener noreferrer">${escapeHtml(value)}</a>`
+          : `<code>${escapeHtml(value)}</code>`;
+      }
+
+      async function copyCitation(readingId) {
+        const reading = flattenReadings().find((item) => item.id === readingId);
+        const reference = reading ? formatHarvardReference(reading) : "";
+        await navigator.clipboard.writeText(reference);
+      }
+
+      function tidySentence(value) {
+        return cleanText(value)
+          .replace(/\s+([?.!,;:])/g, "$1")
+          .replace(/[.]\s*$/, "");
+      }
+
+      function tidyReference(value) {
+        return cleanText(value)
+          .replace(/\s+([,.;:])/g, "$1")
+          .replace(/\.{2,}/g, ".")
+          .replace(/\s+\./g, ".")
+          .replace(/,\s*\./g, ".")
+          .replace(/\.$/, ".")
+          .trim();
       }
 
       function filteredReadings() {
         return flattenReadings().filter((reading) => {
           const week = state.data.weeks.find((item) => item.week === reading.week);
           const haystack = [
-            reading.title,
-            formatAuthors(reading.authors),
-            reading.citation,
+            getDisplayTitle(reading),
+            formatAuthorsForDisplay(reading),
+            formatHarvardReference(reading),
             reading.source,
             reading.notes,
             reading.week_title,
@@ -1015,10 +1342,6 @@
       function displayTitle(week) {
         if (!week) return "";
         return weekDisplayTitles[week.week] || week.title || `Week ${week.week}`;
-      }
-
-      function formatAuthors(authors) {
-        return Array.isArray(authors) && authors.length ? authors.join("; ") : "No author supplied";
       }
 
       function categoryClass(category) {
