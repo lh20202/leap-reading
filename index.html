@@ -6,18 +6,18 @@
     <title>HCRI76000 Reading Dashboard</title>
     <style>
       :root {
-        --bg: #f6f4ef;
-        --surface: #fffdfa;
+        --bg: #f5f4ef;
+        --surface: #faf9f7;
         --surface-strong: #ffffff;
-        --ink: #22201c;
+        --ink: #1a1917;
         --muted: #686057;
-        --line: #ded8cf;
-        --accent: #215d63;
-        --accent-soft: #d8e9e8;
-        --core: #245a48;
-        --additional: #745721;
-        --wider: #633f73;
-        --shadow: 0 12px 30px rgba(42, 34, 24, 0.08);
+        --line: #e5e2dc;
+        --accent: #c96442;
+        --accent-soft: #f3ded6;
+        --core: #3d6b5c;
+        --additional: #826932;
+        --wider: #6d5876;
+        --shadow: none;
       }
 
       * {
@@ -105,13 +105,13 @@
       main {
         max-width: 1180px;
         margin: 0 auto;
-        padding: 34px 22px 58px;
+        padding: 22px 20px 46px;
       }
 
       .hero {
         display: grid;
-        gap: 18px;
-        margin-bottom: 34px;
+        gap: 12px;
+        margin-bottom: 24px;
       }
 
       .eyebrow {
@@ -132,15 +132,21 @@
 
       h1 {
         font-family: Georgia, "Times New Roman", serif;
-        font-size: clamp(2.2rem, 7vw, 4.7rem);
+        font-size: clamp(1.8rem, 5vw, 2.25rem);
         font-weight: 700;
         max-width: 920px;
       }
 
       .purpose {
         color: var(--muted);
-        font-size: 1.1rem;
+        font-size: 1rem;
         max-width: 760px;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
       }
 
       .section-heading {
@@ -267,10 +273,163 @@
         text-decoration: none;
       }
 
+      .button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
       .button.secondary {
         background: #fff;
         border-color: var(--line);
         color: var(--ink);
+      }
+
+      .reader-shell,
+      .responses-shell {
+        display: grid;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .reader-shell > *,
+      .responses-shell > * {
+        min-width: 0;
+      }
+
+      .reader-shell {
+        grid-template-columns: minmax(230px, 280px) minmax(280px, 0.9fr) minmax(340px, 1.1fr);
+      }
+
+      .responses-shell {
+        grid-template-columns: minmax(260px, 0.8fr) minmax(360px, 1.2fr);
+      }
+
+      .panel {
+        background: var(--surface-strong);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        min-width: 0;
+      }
+
+      .filters-panel {
+        position: sticky;
+        top: 78px;
+        padding: 14px;
+      }
+
+      .list-panel {
+        max-height: calc(100vh - 118px);
+        overflow: auto;
+      }
+
+      .detail-panel {
+        max-height: calc(100vh - 118px);
+        overflow: auto;
+        padding: 18px;
+      }
+
+      .panel-header {
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 14px;
+      }
+
+      .panel-header h3 {
+        font-size: 0.96rem;
+      }
+
+      .result-count {
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      .reading-row,
+      .response-row {
+        background: transparent;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        color: inherit;
+        cursor: pointer;
+        display: grid;
+        gap: 5px;
+        padding: 11px 13px;
+        text-align: left;
+        width: 100%;
+      }
+
+      .reading-row:hover,
+      .reading-row:focus,
+      .reading-row.active,
+      .response-row:hover,
+      .response-row:focus,
+      .response-row.active {
+        background: #fff6f2;
+        outline: none;
+      }
+
+      .reading-row.active,
+      .response-row.active {
+        box-shadow: inset 3px 0 0 var(--accent);
+      }
+
+      .row-title {
+        font-size: 0.94rem;
+        font-weight: 750;
+        line-height: 1.28;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .row-meta,
+      .detail-meta {
+        color: var(--muted);
+        display: flex;
+        flex-wrap: wrap;
+        font-size: 0.82rem;
+        gap: 4px 10px;
+      }
+
+      .pill {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--ink);
+        display: inline-flex;
+        font-size: 0.72rem;
+        font-weight: 800;
+        line-height: 1;
+        padding: 4px 7px;
+      }
+
+      .pill.core { background: #edf5f0; }
+      .pill.additional { background: #f6eed9; }
+      .pill.wider { background: #f1eaf3; }
+
+      .detail-title {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1.45rem;
+        margin-bottom: 10px;
+      }
+
+      .detail-stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .detail-stack > *,
+      .detail-stack section {
+        max-width: 100%;
+        min-width: 0;
+      }
+
+      .compact-week-overview {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
 
       .button[disabled] {
@@ -381,11 +540,15 @@
         background: #f7f4ee;
         border: 1px solid var(--line);
         border-radius: 6px;
+        box-sizing: border-box;
         color: #38322b;
         font-family: Georgia, "Times New Roman", serif;
         font-size: 0.94rem;
         line-height: 1.45;
+        max-width: 100%;
+        overflow-wrap: anywhere;
         padding: 12px;
+        width: 100%;
       }
 
       .reference-details,
@@ -534,6 +697,24 @@
         display: none !important;
       }
 
+      @media (max-width: 980px) {
+        .reader-shell,
+        .responses-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .filters-panel,
+        .list-panel,
+        .detail-panel {
+          max-height: none;
+          position: static;
+        }
+
+        .compact-week-overview {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
       @media (max-width: 880px) {
         .nav {
           align-items: flex-start;
@@ -545,7 +726,6 @@
         }
 
         .week-grid,
-        .app-grid,
         .wiki-layout {
           grid-template-columns: 1fr;
         }
@@ -557,15 +737,19 @@
 
       @media (max-width: 560px) {
         main {
-          padding: 26px 14px 44px;
+          padding: 18px 12px 36px;
         }
 
         .nav {
           padding: 12px 14px;
         }
 
+        h1 {
+          font-size: 1.75rem;
+        }
+
         .week-tile {
-          min-height: 160px;
+          min-height: 118px;
         }
 
         .reading-group,
@@ -578,6 +762,18 @@
         .actions .button {
           width: 100%;
         }
+
+        .compact-week-overview {
+          grid-template-columns: 1fr;
+        }
+
+        .row-title {
+          white-space: normal;
+        }
+
+        .detail-title {
+          font-size: 1.22rem;
+        }
       }
     </style>
   </head>
@@ -589,10 +785,9 @@
           <span>Reading dashboard</span>
         </a>
         <div class="nav-links">
-          <a href="#home">Home</a>
-          <a href="#weekly-readings">Weekly readings</a>
-          <a href="#reading-wiki">Reading wiki</a>
-          <a href="#search">Search</a>
+          <a href="#dashboard">Dashboard</a>
+          <a href="#responses">Responses</a>
+          <a href="#reading-wiki">Wiki</a>
           <a href="#about">About</a>
         </div>
       </nav>
@@ -606,7 +801,93 @@
           A personal academic reading dashboard for browsing weekly course readings,
           separating university-provided material from wider reading, and keeping task response notes visible.
         </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#dashboard">Browse readings</a>
+          <a class="button secondary" href="#responses">Browse responses</a>
+        </div>
         <div id="load-error" class="error hidden" role="alert"></div>
+      </section>
+
+      <section id="dashboard" aria-labelledby="dashboard-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="dashboard-title">Dashboard</h2>
+          </div>
+        </div>
+        <div class="reader-shell">
+          <aside class="panel filters-panel" aria-label="Reading filters">
+            <div class="sidebar-inner">
+              <div class="control">
+                <label for="search-input">Search</label>
+                <input id="search-input" type="search" placeholder="Search title, author, week, citation or notes">
+              </div>
+              <div class="control">
+                <label for="week-filter">Week</label>
+                <select id="week-filter"></select>
+              </div>
+              <div class="control">
+                <label for="kind-filter">Reading type</label>
+                <select id="kind-filter"></select>
+              </div>
+              <button id="clear-filters" class="button secondary" type="button">Clear filters</button>
+              <p id="reading-result-count" class="result-count"></p>
+            </div>
+          </aside>
+          <div class="panel list-panel">
+            <div class="panel-header">
+              <h3>Reading list</h3>
+            </div>
+            <div id="reading-list"></div>
+          </div>
+          <article id="reading-detail" class="panel detail-panel" aria-live="polite"></article>
+        </div>
+      </section>
+
+      <section id="responses" aria-labelledby="responses-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="responses-title">Responses</h2>
+          </div>
+        </div>
+        <div class="responses-shell">
+          <aside class="panel filters-panel" aria-label="Response filters">
+            <div class="sidebar-inner">
+              <div class="control">
+                <label for="response-search-input">Search</label>
+                <input id="response-search-input" type="search" placeholder="Search week, response text or bibliography">
+              </div>
+              <div class="control">
+                <label for="response-week-filter">Week</label>
+                <select id="response-week-filter"></select>
+              </div>
+              <div class="control">
+                <label for="response-text-filter">Response text</label>
+                <select id="response-text-filter">
+                  <option value="all">All</option>
+                  <option value="present">Has response text</option>
+                  <option value="missing">Missing response text</option>
+                </select>
+              </div>
+              <div class="control">
+                <label for="response-bib-filter">Bibliography</label>
+                <select id="response-bib-filter">
+                  <option value="all">All</option>
+                  <option value="present">Has bibliography</option>
+                  <option value="missing">Missing bibliography</option>
+                </select>
+              </div>
+              <button id="clear-response-filters" class="button secondary" type="button">Clear filters</button>
+              <p id="response-result-count" class="result-count"></p>
+            </div>
+          </aside>
+          <div class="panel list-panel">
+            <div class="panel-header">
+              <h3>Response list</h3>
+            </div>
+            <div id="response-list"></div>
+          </div>
+          <article id="response-detail" class="panel detail-panel" aria-live="polite"></article>
+        </div>
       </section>
 
       <section id="week-tiles" aria-labelledby="week-tiles-title">
@@ -615,51 +896,7 @@
             <h2 id="week-tiles-title">Weeks</h2>
           </div>
         </div>
-        <div id="tile-groups"></div>
-      </section>
-
-      <section id="search" aria-labelledby="search-title">
-        <div class="section-heading">
-          <div>
-            <h2 id="search-title">Search</h2>
-          </div>
-        </div>
-      </section>
-
-      <section id="weekly-readings" aria-labelledby="weekly-title">
-        <div class="section-heading">
-          <div>
-            <h2 id="weekly-title">Weekly readings</h2>
-          </div>
-        </div>
-        <div class="app-grid">
-          <aside class="sidebar" aria-label="Reading filters">
-            <div class="sidebar-inner">
-              <div class="control">
-                <label for="search-input">Search</label>
-                <input id="search-input" type="search" placeholder="Search readings">
-              </div>
-              <div class="control">
-                <label for="week-filter">Week</label>
-                <select id="week-filter"></select>
-              </div>
-              <div class="control">
-                <label for="category-filter">Reading category</label>
-                <select id="category-filter"></select>
-              </div>
-              <div class="control">
-                <label for="kind-filter">Core / additional / wider</label>
-                <select id="kind-filter"></select>
-              </div>
-              <div class="control">
-                <label for="origin-filter">Source origin</label>
-                <select id="origin-filter"></select>
-              </div>
-              <button id="clear-filters" class="button secondary" type="button" onclick="clearFilters()">Clear filters</button>
-            </div>
-          </aside>
-          <div id="weekly-container"></div>
-        </div>
+        <div id="tile-groups" class="compact-week-overview"></div>
       </section>
 
       <section id="reading-wiki" aria-labelledby="wiki-title">
@@ -729,28 +966,42 @@
 
       const state = {
         data: null,
+        selectedReadingId: null,
         selectedWikiId: null,
-        filters: {
+        selectedResponseId: null,
+        currentReadingFilters: {
           search: "",
           week: "all",
-          category: "all",
-          kind: "all",
-          origin: "all"
+          kind: "all"
+        },
+        currentResponseFilters: {
+          search: "",
+          week: "all",
+          text: "all",
+          bibliography: "all"
         }
       };
 
       const els = {
         loadError: document.querySelector("#load-error"),
         tileGroups: document.querySelector("#tile-groups"),
-        weeklyContainer: document.querySelector("#weekly-container"),
+        readingList: document.querySelector("#reading-list"),
+        readingDetail: document.querySelector("#reading-detail"),
+        readingResultCount: document.querySelector("#reading-result-count"),
         wikiNav: document.querySelector("#wiki-nav"),
         wikiDetail: document.querySelector("#wiki-detail"),
         searchInput: document.querySelector("#search-input"),
         weekFilter: document.querySelector("#week-filter"),
-        categoryFilter: document.querySelector("#category-filter"),
         kindFilter: document.querySelector("#kind-filter"),
-        originFilter: document.querySelector("#origin-filter"),
-        clearFilters: document.querySelector("#clear-filters")
+        clearFilters: document.querySelector("#clear-filters"),
+        responseSearchInput: document.querySelector("#response-search-input"),
+        responseWeekFilter: document.querySelector("#response-week-filter"),
+        responseTextFilter: document.querySelector("#response-text-filter"),
+        responseBibFilter: document.querySelector("#response-bib-filter"),
+        responseList: document.querySelector("#response-list"),
+        responseDetail: document.querySelector("#response-detail"),
+        responseResultCount: document.querySelector("#response-result-count"),
+        clearResponseFilters: document.querySelector("#clear-response-filters")
       };
 
       init();
@@ -775,90 +1026,106 @@
       function renderAll() {
         renderTiles();
         renderFilters();
-        renderWeeklyReadings();
+        renderReadingDashboard();
+        renderResponseFilters();
+        renderResponsesDashboard();
         renderWikiNav();
-        renderWikiDetail(flattenReadings()[0]);
+        selectReading(filterReadings(state.currentReadingFilters)[0]?.id || null);
+        selectResponse(filterResponses(state.currentResponseFilters)[0]?.id || null);
+        renderWikiDetail(getAllReadings()[0]);
       }
 
       function bindControls() {
         els.searchInput.addEventListener("input", (event) => {
-          state.filters.search = event.target.value.trim().toLowerCase();
-          renderWeeklyReadings();
+          state.currentReadingFilters.search = event.target.value.trim().toLowerCase();
+          renderReadingDashboard();
         });
 
         [
           [els.weekFilter, "week"],
-          [els.categoryFilter, "category"],
-          [els.kindFilter, "kind"],
-          [els.originFilter, "origin"]
+          [els.kindFilter, "kind"]
         ].forEach(([element, key]) => {
           element.addEventListener("change", (event) => {
-            state.filters[key] = event.target.value;
-            renderWeeklyReadings();
+            state.currentReadingFilters[key] = event.target.value;
+            renderReadingDashboard();
           });
         });
 
         els.clearFilters.addEventListener("click", () => {
           clearFilters();
         });
+
+        els.responseSearchInput.addEventListener("input", (event) => {
+          state.currentResponseFilters.search = event.target.value.trim().toLowerCase();
+          renderResponsesDashboard();
+        });
+
+        [
+          [els.responseWeekFilter, "week"],
+          [els.responseTextFilter, "text"],
+          [els.responseBibFilter, "bibliography"]
+        ].forEach(([element, key]) => {
+          element.addEventListener("change", (event) => {
+            state.currentResponseFilters[key] = event.target.value;
+            renderResponsesDashboard();
+          });
+        });
+
+        els.clearResponseFilters.addEventListener("click", () => {
+          clearResponseFilters();
+        });
       }
 
       function clearFilters() {
-        state.filters = { search: "", week: "all", category: "all", kind: "all", origin: "all" };
+        state.currentReadingFilters = { search: "", week: "all", kind: "all" };
         els.searchInput.value = "";
         els.weekFilter.value = "all";
-        els.categoryFilter.value = "all";
         els.kindFilter.value = "all";
-        els.originFilter.value = "all";
-        renderWeeklyReadings();
+        renderReadingDashboard();
       }
 
       window.clearFilters = clearFilters;
 
-      function renderTiles() {
-        els.tileGroups.innerHTML = tileSections.map((section) => {
-          const tiles = section.weeks
-            .map((weekNumber) => state.data.weeks.find((week) => week.week === weekNumber))
-            .filter(Boolean)
-            .map((week) => {
-              return `
-                <a class="week-tile" href="#week-${week.week}">
-                  <span class="week-number">Week ${week.week}</span>
-                  <h3>${escapeHtml(displayTitle(week))}</h3>
-                </a>
-              `;
-            }).join("");
+      function clearResponseFilters() {
+        state.currentResponseFilters = { search: "", week: "all", text: "all", bibliography: "all" };
+        els.responseSearchInput.value = "";
+        els.responseWeekFilter.value = "all";
+        els.responseTextFilter.value = "all";
+        els.responseBibFilter.value = "all";
+        renderResponsesDashboard();
+      }
 
-          return `
-            <div class="tile-group">
-              <div class="section-heading">
-                <div>
-                  <h3>${escapeHtml(section.title)}</h3>
-                </div>
-              </div>
-              <div class="week-grid">${tiles}</div>
-            </div>
-          `;
-        }).join("");
+      function renderTiles() {
+        els.tileGroups.innerHTML = state.data.weeks.map((week) => `
+          <a class="week-tile" href="#dashboard" data-jump-week="${escapeAttr(String(week.week))}">
+            <span class="week-number">Week ${week.week}</span>
+            <h3>${escapeHtml(displayTitle(week))}</h3>
+          </a>
+        `).join("");
+        els.tileGroups.querySelectorAll("[data-jump-week]").forEach((tile) => {
+          tile.addEventListener("click", () => {
+            state.currentReadingFilters.week = tile.dataset.jumpWeek;
+            els.weekFilter.value = tile.dataset.jumpWeek;
+            renderReadingDashboard();
+          });
+        });
       }
 
       function renderFilters() {
-        const readings = flattenReadings();
         setOptions(els.weekFilter, [
           ["all", "All weeks"],
           ...state.data.weeks.map((week) => [String(week.week), `Week ${week.week} - ${displayTitle(week)}`])
         ]);
-        setOptions(els.categoryFilter, [
-          ["all", "All categories"],
-          ...unique(readings.map((reading) => reading.category)).map((category) => [category, category])
-        ]);
         setOptions(els.kindFilter, [
-          ["all", "Core, additional and wider"],
+          ["all", "All"],
           ...expectedCategories.map((category) => [category, shortLabels[category]])
         ]);
-        setOptions(els.originFilter, [
-          ["all", "All source origins"],
-          ...unique(readings.map((reading) => reading.listed_in).filter(Boolean)).map((origin) => [origin, origin])
+      }
+
+      function renderResponseFilters() {
+        setOptions(els.responseWeekFilter, [
+          ["all", "All weeks"],
+          ...state.data.weeks.map((week) => [String(week.week), `Week ${week.week} - ${displayTitle(week)}`])
         ]);
       }
 
@@ -868,36 +1135,147 @@
           .join("");
       }
 
-      function renderWeeklyReadings() {
-        const filteredIds = new Set(filteredReadings().map((reading) => reading.id));
+      function renderReadingDashboard() {
+        const readings = filterReadings(state.currentReadingFilters);
+        if (!readings.some((reading) => reading.id === state.selectedReadingId)) {
+          state.selectedReadingId = readings[0]?.id || null;
+        }
+        els.readingResultCount.textContent = `${readings.length} reading${readings.length === 1 ? "" : "s"}`;
+        renderReadingList(readings);
+        renderReadingDetail(readings.find((reading) => reading.id === state.selectedReadingId) || null);
+      }
 
-        els.weeklyContainer.innerHTML = state.data.weeks.map((week) => {
-          const matchingInWeek = readingsForWeek(week).filter((reading) => filteredIds.has(reading.id));
-          const weeklyNote = state.data.metadata?.weekly_notes?.[week.week] || "";
-          const groups = expectedCategories.map((category) => {
-            const section = week.sections.find((item) => item.category === category);
-            const readings = section ? section.readings.filter((reading) => filteredIds.has(reading.id)) : [];
-            return renderReadingGroup(category, section ? section.title : categoryLabels[category], readings);
-          }).join("");
-
-          const hiddenClass = matchingInWeek.length === 0 ? " hidden" : "";
+      function renderReadingList(readings) {
+        if (!readings.length) {
+          els.readingList.innerHTML = `<p class="empty" style="padding: 14px;">No readings match these filters.</p>`;
+          return;
+        }
+        els.readingList.innerHTML = readings.map((reading) => {
+          const active = reading.id === state.selectedReadingId ? " active" : "";
           return `
-            <article id="week-${week.week}" class="week-section${hiddenClass}">
-              <header class="week-header">
-                <span class="week-number">Week ${week.week}</span>
-                <h3>${escapeHtml(displayTitle(week))}</h3>
-              </header>
-              ${groups}
-              <details class="response">
-                <summary>My task response</summary>
-                <p class="empty">No response text has been added yet.</p>
-                ${weeklyNote ? `<p class="notes">${escapeHtml(weeklyNote)}</p>` : ""}
-              </details>
-            </article>
+            <button class="reading-row${active}" type="button" data-reading-id="${escapeAttr(reading.id)}">
+              <span class="row-title">${escapeHtml(getDisplayTitle(reading))}</span>
+              <span class="row-meta">
+                <span>${escapeHtml(formatReadingMeta(reading))}</span>
+                <span class="pill ${categoryClass(reading.category)}">${escapeHtml(getReadingTypeBadge(reading))}</span>
+                ${cleanText(reading.reading_type) ? `<span>${escapeHtml(cleanText(reading.reading_type))}</span>` : ""}
+              </span>
+            </button>
           `;
         }).join("");
+        els.readingList.querySelectorAll("[data-reading-id]").forEach((button) => {
+          button.addEventListener("click", () => selectReading(button.dataset.readingId));
+        });
+      }
 
+      function selectReading(readingId) {
+        state.selectedReadingId = readingId;
+        const reading = getAllReadings().find((item) => item.id === readingId) || null;
+        renderReadingList(filterReadings(state.currentReadingFilters));
+        renderReadingDetail(reading);
+      }
+
+      function renderReadingDetail(reading) {
+        if (!reading) {
+          els.readingDetail.innerHTML = `<p class="empty">No readings match these filters.</p>`;
+          return;
+        }
+        const reference = formatHarvardReference(reading);
+        const sourceDetail = formatSourceDetailLine(reading);
+        els.readingDetail.innerHTML = `
+          <div class="detail-stack">
+            <span class="week-number">Week ${reading.week}</span>
+            <h3 class="detail-title">${escapeHtml(getDisplayTitle(reading))}</h3>
+            <div class="detail-meta">
+              <span>${escapeHtml(formatAuthorsForDisplay(reading))}</span>
+              <span>${escapeHtml(cleanYear(reading.year) || "n.d.")}</span>
+              <span>Week ${escapeHtml(String(reading.week))}</span>
+              <span class="pill ${categoryClass(reading.category)}">${escapeHtml(getReadingTypeBadge(reading))}</span>
+            </div>
+            ${sourceDetail ? `<div class="detail-meta"><span>${escapeHtml(sourceDetail)}</span></div>` : ""}
+            <div class="actions">${renderAccessButtons(reading)}</div>
+            ${renderHarvardReference(reference)}
+            <button class="button secondary" type="button" data-copy-reading-id="${escapeAttr(reading.id)}">Copy Harvard reference</button>
+            ${reading.notes ? `<p class="notes">${escapeHtml(reading.notes)}</p>` : ""}
+            ${renderSourceAccessDetails(reading)}
+          </div>
+        `;
         bindCopyButtons();
+      }
+
+      function renderResponsesDashboard() {
+        const responses = filterResponses(state.currentResponseFilters);
+        if (!responses.some((response) => response.id === state.selectedResponseId)) {
+          state.selectedResponseId = responses[0]?.id || null;
+        }
+        els.responseResultCount.textContent = `${responses.length} response${responses.length === 1 ? "" : "s"}`;
+        renderResponseList(responses);
+        renderResponseDetail(responses.find((response) => response.id === state.selectedResponseId) || null);
+      }
+
+      function renderResponseList(responses) {
+        if (!responses.length) {
+          els.responseList.innerHTML = `<p class="empty" style="padding: 14px;">No responses match these filters.</p>`;
+          return;
+        }
+        els.responseList.innerHTML = responses.map((response) => {
+          const active = response.id === state.selectedResponseId ? " active" : "";
+          const preview = response.text || "No response text has been added yet.";
+          return `
+            <button class="response-row${active}" type="button" data-response-id="${escapeAttr(response.id)}">
+              <span class="row-title">Week ${response.week}: ${escapeHtml(response.title)}</span>
+              <span class="row-meta">
+                <span>${escapeHtml(preview.slice(0, 96))}${preview.length > 96 ? "..." : ""}</span>
+                <span>${response.bibliography.length} bibliograph${response.bibliography.length === 1 ? "y item" : "y items"}</span>
+              </span>
+            </button>
+          `;
+        }).join("");
+        els.responseList.querySelectorAll("[data-response-id]").forEach((button) => {
+          button.addEventListener("click", () => selectResponse(button.dataset.responseId));
+        });
+      }
+
+      function selectResponse(responseId) {
+        state.selectedResponseId = responseId;
+        const response = getAllResponses().find((item) => item.id === responseId) || null;
+        renderResponseList(filterResponses(state.currentResponseFilters));
+        renderResponseDetail(response);
+      }
+
+      function renderResponseDetail(response) {
+        if (!response) {
+          els.responseDetail.innerHTML = `<p class="empty">No responses match these filters.</p>`;
+          return;
+        }
+        const responseText = response.text || "No response text has been added yet.";
+        els.responseDetail.innerHTML = `
+          <div class="detail-stack">
+            <span class="week-number">Week ${response.week}</span>
+            <h3 class="detail-title">${escapeHtml(response.title)}</h3>
+            <div class="detail-meta"><span>${escapeHtml(response.weekTitle)}</span></div>
+            <section>
+              <h4>Response text</h4>
+              <p class="${response.text ? "" : "empty"}">${escapeHtml(responseText)}</p>
+              <button class="button secondary" type="button" data-copy-text="${escapeAttr(responseText)}">Copy response</button>
+            </section>
+            <section>
+              <h4>Bibliography</h4>
+              ${renderResponseBibliography(response)}
+              <button class="button secondary" type="button" data-copy-text="${escapeAttr(response.bibliography.map(formatHarvardReference).join("\\n"))}">Copy bibliography</button>
+            </section>
+          </div>
+        `;
+        bindTextCopyButtons();
+      }
+
+      function renderResponseBibliography(response) {
+        if (!response.bibliography.length) {
+          return `<p class="empty">No bibliography has been added for this response yet.</p>`;
+        }
+        return response.bibliography.map((reading) => `
+          <div class="citation">${escapeHtml(formatHarvardReference(reading))}</div>
+        `).join("");
       }
 
       function bindCopyButtons() {
@@ -911,6 +1289,16 @@
             window.setTimeout(() => {
               button.textContent = "Copy Harvard reference";
             }, 1400);
+          });
+        });
+      }
+
+      function bindTextCopyButtons() {
+        document.querySelectorAll("[data-copy-text]").forEach((button) => {
+          if (button.dataset.copyBound === "true") return;
+          button.dataset.copyBound = "true";
+          button.addEventListener("click", () => {
+            copyText(button.getAttribute("data-copy-text") || "", button);
           });
         });
       }
@@ -1308,8 +1696,19 @@
           .trim();
       }
 
-      function filteredReadings() {
-        return flattenReadings().filter((reading) => {
+      function getAllReadings() {
+        return state.data.weeks.flatMap(readingsForWeek);
+      }
+
+      function getReadingsByWeek() {
+        return state.data.weeks.reduce((byWeek, week) => {
+          byWeek[week.week] = readingsForWeek(week);
+          return byWeek;
+        }, {});
+      }
+
+      function filterReadings(filters) {
+        return getAllReadings().filter((reading) => {
           const week = state.data.weeks.find((item) => item.week === reading.week);
           const haystack = [
             getDisplayTitle(reading),
@@ -1321,22 +1720,84 @@
             displayTitle(week)
           ].join(" ").toLowerCase();
 
-          const matchesSearch = !state.filters.search || haystack.includes(state.filters.search);
-          const matchesWeek = state.filters.week === "all" || String(reading.week) === state.filters.week;
-          const matchesCategory = state.filters.category === "all" || reading.category === state.filters.category;
-          const matchesKind = state.filters.kind === "all" || reading.category === state.filters.kind;
-          const matchesOrigin = state.filters.origin === "all" || reading.listed_in === state.filters.origin;
+          const matchesSearch = !filters.search || haystack.includes(filters.search);
+          const matchesWeek = filters.week === "all" || String(reading.week) === filters.week;
+          const matchesKind = filters.kind === "all" || reading.category === filters.kind;
 
-          return matchesSearch && matchesWeek && matchesCategory && matchesKind && matchesOrigin;
+          return matchesSearch && matchesWeek && matchesKind;
         });
       }
 
       function flattenReadings() {
-        return state.data.weeks.flatMap(readingsForWeek);
+        return getAllReadings();
       }
 
       function readingsForWeek(week) {
         return week.sections.flatMap((section) => section.readings);
+      }
+
+      function getAllResponses() {
+        return state.data.weeks.map((week) => {
+          const bibliography = week.sections
+            .filter((section) => section.category === "wider_from_my_responses")
+            .flatMap((section) => section.readings);
+          return {
+            id: `week-${week.week}-response`,
+            week: week.week,
+            weekTitle: displayTitle(week),
+            title: "My task response",
+            text: "",
+            note: state.data.metadata?.weekly_notes?.[week.week] || "",
+            bibliography
+          };
+        });
+      }
+
+      function filterResponses(filters) {
+        return getAllResponses().filter((response) => {
+          const bibliographyText = response.bibliography.map((reading) => [
+            formatAuthorsForDisplay(reading),
+            getDisplayTitle(reading),
+            cleanYear(reading.year),
+            formatHarvardReference(reading)
+          ].join(" ")).join(" ");
+          const haystack = [
+            response.week,
+            response.weekTitle,
+            response.title,
+            response.text,
+            response.note,
+            bibliographyText
+          ].join(" ").toLowerCase();
+          const matchesSearch = !filters.search || haystack.includes(filters.search);
+          const matchesWeek = filters.week === "all" || String(response.week) === filters.week;
+          const hasText = Boolean(cleanText(response.text));
+          const hasBibliography = response.bibliography.length > 0;
+          const matchesText = filters.text === "all" || (filters.text === "present" ? hasText : !hasText);
+          const matchesBibliography = filters.bibliography === "all" || (filters.bibliography === "present" ? hasBibliography : !hasBibliography);
+          return matchesSearch && matchesWeek && matchesText && matchesBibliography;
+        });
+      }
+
+      function formatReadingMeta(reading) {
+        return [
+          formatAuthorsForDisplay(reading),
+          cleanYear(reading.year) || "n.d.",
+          `Week ${reading.week}`
+        ].filter(Boolean).join(" · ");
+      }
+
+      function getReadingTypeBadge(reading) {
+        return shortLabels[reading.category] || "Reading";
+      }
+
+      async function copyText(text, button) {
+        await navigator.clipboard.writeText(text);
+        const original = button.textContent;
+        button.textContent = "Copied";
+        window.setTimeout(() => {
+          button.textContent = original;
+        }, 1400);
       }
 
       function displayTitle(week) {
