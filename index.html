@@ -302,7 +302,7 @@
       }
 
       .responses-shell {
-        grid-template-columns: minmax(260px, 0.8fr) minmax(360px, 1.2fr);
+        grid-template-columns: minmax(230px, 270px) minmax(280px, 0.85fr) minmax(460px, 1.35fr);
       }
 
       .panel {
@@ -376,6 +376,20 @@
         box-shadow: inset 3px 0 0 var(--accent);
       }
 
+      .response-preview {
+        color: var(--muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .response-status {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
       .row-title {
         font-size: 0.94rem;
         font-weight: 750;
@@ -424,6 +438,45 @@
       .detail-stack section {
         max-width: 100%;
         min-width: 0;
+      }
+
+      .response-detail-panel {
+        padding: 22px;
+      }
+
+      .response-body {
+        font-size: 1rem;
+        line-height: 1.65;
+        max-width: 76ch;
+      }
+
+      .response-body p {
+        margin: 0 0 1em;
+      }
+
+      .response-bibliography {
+        display: grid;
+        gap: 10px;
+      }
+
+      .response-citation-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .advanced-filters {
+        border-top: 1px solid var(--line);
+        padding-top: 10px;
+      }
+
+      .advanced-filters summary {
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      .search-scope {
+        display: grid;
+        gap: 6px;
       }
 
       .compact-week-overview {
@@ -854,28 +907,40 @@
             <div class="sidebar-inner">
               <div class="control">
                 <label for="response-search-input">Search</label>
-                <input id="response-search-input" type="search" placeholder="Search week, response text or bibliography">
+                <input id="response-search-input" type="search" placeholder="Search response text, week, title or bibliography">
+              </div>
+              <div class="control search-scope">
+                <label for="response-scope-filter">Search scope</label>
+                <select id="response-scope-filter">
+                  <option value="all">All</option>
+                  <option value="response">Response text</option>
+                  <option value="bibliography">Bibliography</option>
+                  <option value="week">Week/title</option>
+                </select>
               </div>
               <div class="control">
                 <label for="response-week-filter">Week</label>
                 <select id="response-week-filter"></select>
               </div>
-              <div class="control">
-                <label for="response-text-filter">Response text</label>
-                <select id="response-text-filter">
-                  <option value="all">All</option>
-                  <option value="present">Has response text</option>
-                  <option value="missing">Missing response text</option>
-                </select>
-              </div>
-              <div class="control">
-                <label for="response-bib-filter">Bibliography</label>
-                <select id="response-bib-filter">
-                  <option value="all">All</option>
-                  <option value="present">Has bibliography</option>
-                  <option value="missing">Missing bibliography</option>
-                </select>
-              </div>
+              <details class="advanced-filters">
+                <summary>More filters</summary>
+                <div class="control">
+                  <label for="response-text-filter">Response text</label>
+                  <select id="response-text-filter">
+                    <option value="all">All</option>
+                    <option value="present">Has response text</option>
+                    <option value="missing">Missing response text</option>
+                  </select>
+                </div>
+                <div class="control">
+                  <label for="response-bib-filter">Bibliography</label>
+                  <select id="response-bib-filter">
+                    <option value="all">All</option>
+                    <option value="present">Has bibliography</option>
+                    <option value="missing">Missing bibliography</option>
+                  </select>
+                </div>
+              </details>
               <button id="clear-response-filters" class="button secondary" type="button">Clear filters</button>
               <p id="response-result-count" class="result-count"></p>
             </div>
@@ -886,7 +951,7 @@
             </div>
             <div id="response-list"></div>
           </div>
-          <article id="response-detail" class="panel detail-panel" aria-live="polite"></article>
+          <article id="response-detail" class="panel detail-panel response-detail-panel" aria-live="polite"></article>
         </div>
       </section>
 
@@ -977,6 +1042,7 @@
         },
         currentResponseFilters: {
           search: "",
+          scope: "all",
           week: "all",
           text: "all",
           bibliography: "all"
@@ -996,6 +1062,7 @@
         kindFilter: document.querySelector("#kind-filter"),
         clearFilters: document.querySelector("#clear-filters"),
         responseSearchInput: document.querySelector("#response-search-input"),
+        responseScopeFilter: document.querySelector("#response-scope-filter"),
         responseWeekFilter: document.querySelector("#response-week-filter"),
         responseTextFilter: document.querySelector("#response-text-filter"),
         responseBibFilter: document.querySelector("#response-bib-filter"),
@@ -1069,6 +1136,7 @@
 
         [
           [els.responseWeekFilter, "week"],
+          [els.responseScopeFilter, "scope"],
           [els.responseTextFilter, "text"],
           [els.responseBibFilter, "bibliography"]
         ].forEach(([element, key]) => {
@@ -1094,8 +1162,9 @@
       window.clearFilters = clearFilters;
 
       function clearResponseFilters() {
-        state.currentResponseFilters = { search: "", week: "all", text: "all", bibliography: "all" };
+        state.currentResponseFilters = { search: "", scope: "all", week: "all", text: "all", bibliography: "all" };
         els.responseSearchInput.value = "";
+        els.responseScopeFilter.value = "all";
         els.responseWeekFilter.value = "all";
         els.responseTextFilter.value = "all";
         els.responseBibFilter.value = "all";
@@ -1215,7 +1284,10 @@
         if (!responses.some((response) => response.id === state.selectedResponseId)) {
           state.selectedResponseId = responses[0]?.id || null;
         }
-        els.responseResultCount.textContent = `${responses.length} response${responses.length === 1 ? "" : "s"}`;
+        const query = state.currentResponseFilters.search;
+        els.responseResultCount.textContent = query
+          ? `${responses.length} response${responses.length === 1 ? "" : "s"} found for "${query}"`
+          : `${responses.length} response${responses.length === 1 ? "" : "s"} found`;
         renderResponseList(responses);
         renderResponseDetail(responses.find((response) => response.id === state.selectedResponseId) || null);
       }
@@ -1227,13 +1299,17 @@
         }
         els.responseList.innerHTML = responses.map((response) => {
           const active = response.id === state.selectedResponseId ? " active" : "";
-          const preview = response.text || response.note || "No response text has been added yet.";
+          const preview = responsePreview(response);
           return `
             <button class="response-row${active}" type="button" data-response-id="${escapeAttr(response.id)}">
-              <span class="row-title">Week ${response.week}: ${escapeHtml(response.title)}</span>
+              <span class="row-meta"><strong>Week ${response.week}</strong><span>${escapeHtml(response.weekTitle)}</span></span>
+              <span class="row-title">${escapeHtml(response.title)}</span>
               <span class="row-meta">
-                <span>${escapeHtml(preview.slice(0, 96))}${preview.length > 96 ? "..." : ""}</span>
-                <span>${response.bibliography.length} bibliograph${response.bibliography.length === 1 ? "y item" : "y items"}</span>
+                <span class="response-preview">${escapeHtml(preview)}</span>
+              </span>
+              <span class="response-status">
+                <span>Bibliography: ${response.bibliography.length}</span>
+                ${responseStatusBadges(response)}
               </span>
             </button>
           `;
@@ -1269,14 +1345,14 @@
             ` : ""}
             <section>
               <h4>Response text</h4>
-              <div class="${response.text ? "" : "empty"}">${formatParagraphs(responseText)}</div>
+              <div class="response-body ${response.text ? "" : "empty"}">${formatResponseParagraphs(responseText)}</div>
               ${response.note ? `<p class="notes">${escapeHtml(response.note)}</p>` : ""}
-              <button class="button secondary" type="button" data-copy-text="${escapeAttr(responseText)}">Copy response</button>
+              ${response.text ? `<button class="button secondary" type="button" data-copy-text="${escapeAttr(responseText)}">Copy response</button>` : ""}
             </section>
-            <section>
-              <h4>Bibliography</h4>
+            <section class="response-bibliography">
+              <h4>Bibliography for this response</h4>
               ${renderResponseBibliography(response)}
-              <button class="button secondary" type="button" data-copy-text="${escapeAttr(response.bibliography.map(formatHarvardReference).join("\\n"))}">Copy bibliography</button>
+              ${response.bibliography.length ? `<button class="button secondary" type="button" data-copy-text="${escapeAttr(response.bibliography.map(formatHarvardReference).join("\\n"))}">Copy bibliography</button>` : ""}
             </section>
           </div>
         `;
@@ -1287,9 +1363,9 @@
         if (!response.bibliography.length) {
           return `<p class="empty">No bibliography has been added for this response yet.</p>`;
         }
-        return response.bibliography.map((reading) => `
+        return `<div class="response-citation-list">${response.bibliography.map((reading) => `
           <div class="citation">${escapeHtml(formatHarvardReference(reading))}</div>
-        `).join("");
+        `).join("")}</div>`;
       }
 
       function bindCopyButtons() {
@@ -1795,20 +1871,7 @@
 
       function filterResponses(filters) {
         return getAllResponses().filter((response) => {
-          const bibliographyText = response.bibliography.map((reading) => [
-            typeof reading === "string" ? reading : formatAuthorsForDisplay(reading),
-            typeof reading === "string" ? "" : getDisplayTitle(reading),
-            typeof reading === "string" ? cleanYear(reading) : cleanYear(reading.year),
-            formatHarvardReference(reading)
-          ].join(" ")).join(" ");
-          const haystack = [
-            response.week,
-            response.weekTitle,
-            response.title,
-            response.text,
-            response.note,
-            bibliographyText
-          ].join(" ").toLowerCase();
+          const haystack = responseSearchHaystack(response, filters.scope).toLowerCase();
           const matchesSearch = !filters.search || haystack.includes(filters.search);
           const matchesWeek = filters.week === "all" || String(response.week) === filters.week;
           const hasText = Boolean(cleanText(response.text));
@@ -1829,6 +1892,40 @@
 
       function getReadingTypeBadge(reading) {
         return shortLabels[reading.category] || "Reading";
+      }
+
+      function responseSearchHaystack(response, scope) {
+        const bibliographyText = response.bibliography.map((reading) => [
+          typeof reading === "string" ? reading : formatAuthorsForDisplay(reading),
+          typeof reading === "string" ? "" : getDisplayTitle(reading),
+          typeof reading === "string" ? cleanYear(reading) : cleanYear(reading.year),
+          formatHarvardReference(reading)
+        ].join(" ")).join(" ");
+        const fields = {
+          all: [response.week, response.weekTitle, response.title, response.prompt, response.text, response.note, bibliographyText],
+          response: [response.title, response.prompt, response.text, response.note],
+          bibliography: [bibliographyText],
+          week: [response.week, `Week ${response.week}`, response.weekTitle, response.title]
+        };
+        return (fields[scope] || fields.all).join(" ");
+      }
+
+      function responsePreview(response) {
+        const source = response.text || response.note || "No response text has been added yet.";
+        const cleaned = cleanText(source);
+        const preview = cleaned.slice(0, 82);
+        return `${preview}${cleaned.length > 82 ? "..." : ""}`;
+      }
+
+      function responseStatusBadges(response) {
+        const badges = [];
+        if (!cleanText(response.text)) badges.push(`<span class="pill additional">Missing text</span>`);
+        if (response.bibliography.length) badges.push(`<span class="pill wider">Bibliography</span>`);
+        return badges.join("");
+      }
+
+      function formatResponseParagraphs(text) {
+        return formatParagraphs(text);
       }
 
       async function copyText(text, button) {
