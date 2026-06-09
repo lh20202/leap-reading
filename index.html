@@ -966,6 +966,7 @@
 
       const state = {
         data: null,
+        responseData: null,
         selectedReadingId: null,
         selectedWikiId: null,
         selectedResponseId: null,
@@ -1013,6 +1014,12 @@
             throw new Error(`readings.json could not be loaded (${response.status})`);
           }
           state.data = await response.json();
+          try {
+            const responseTextData = await fetch("responses.json");
+            state.responseData = responseTextData.ok ? await responseTextData.json() : null;
+          } catch {
+            state.responseData = null;
+          }
           renderAll();
           bindControls();
         } catch (error) {
@@ -1220,7 +1227,7 @@
         }
         els.responseList.innerHTML = responses.map((response) => {
           const active = response.id === state.selectedResponseId ? " active" : "";
-          const preview = response.text || "No response text has been added yet.";
+          const preview = response.text || response.note || "No response text has been added yet.";
           return `
             <button class="response-row${active}" type="button" data-response-id="${escapeAttr(response.id)}">
               <span class="row-title">Week ${response.week}: ${escapeHtml(response.title)}</span>
@@ -1254,9 +1261,16 @@
             <span class="week-number">Week ${response.week}</span>
             <h3 class="detail-title">${escapeHtml(response.title)}</h3>
             <div class="detail-meta"><span>${escapeHtml(response.weekTitle)}</span></div>
+            ${response.prompt ? `
+              <details class="source-details">
+                <summary>Task prompt</summary>
+                <div class="source-raw">${formatParagraphs(response.prompt)}</div>
+              </details>
+            ` : ""}
             <section>
               <h4>Response text</h4>
-              <p class="${response.text ? "" : "empty"}">${escapeHtml(responseText)}</p>
+              <div class="${response.text ? "" : "empty"}">${formatParagraphs(responseText)}</div>
+              ${response.note ? `<p class="notes">${escapeHtml(response.note)}</p>` : ""}
               <button class="button secondary" type="button" data-copy-text="${escapeAttr(responseText)}">Copy response</button>
             </section>
             <section>
@@ -1557,6 +1571,9 @@
       }
 
       function formatHarvardReference(reading) {
+        if (typeof reading === "string") {
+          return cleanExistingCitation(reading);
+        }
         if (reading.category === "wider_from_my_responses") {
           const supplied = cleanExistingCitation(reading.citation);
           if (supplied && !isInstitutionalResolverUrl(supplied)) return supplied;
@@ -1696,6 +1713,14 @@
           .trim();
       }
 
+      function formatParagraphs(value) {
+        const text = String(value || "").trim();
+        if (!text) return "";
+        return text.split(/\n{2,}|\n/).filter(Boolean).map((paragraph) =>
+          `<p>${escapeHtml(cleanText(paragraph))}</p>`
+        ).join("");
+      }
+
       function getAllReadings() {
         return state.data.weeks.flatMap(readingsForWeek);
       }
@@ -1737,6 +1762,21 @@
       }
 
       function getAllResponses() {
+        if (state.responseData?.responses?.length) {
+          return state.responseData.responses.map((response) => {
+            const week = state.data.weeks.find((item) => item.week === response.week);
+            return {
+              id: response.id,
+              week: response.week,
+              weekTitle: displayTitle(week),
+              title: response.title,
+              prompt: response.prompt || "",
+              text: response.responseText || "",
+              note: response.note || "",
+              bibliography: Array.isArray(response.bibliography) ? response.bibliography : []
+            };
+          });
+        }
         return state.data.weeks.map((week) => {
           const bibliography = week.sections
             .filter((section) => section.category === "wider_from_my_responses")
@@ -1756,9 +1796,9 @@
       function filterResponses(filters) {
         return getAllResponses().filter((response) => {
           const bibliographyText = response.bibliography.map((reading) => [
-            formatAuthorsForDisplay(reading),
-            getDisplayTitle(reading),
-            cleanYear(reading.year),
+            typeof reading === "string" ? reading : formatAuthorsForDisplay(reading),
+            typeof reading === "string" ? "" : getDisplayTitle(reading),
+            typeof reading === "string" ? cleanYear(reading) : cleanYear(reading.year),
             formatHarvardReference(reading)
           ].join(" ")).join(" ");
           const haystack = [
